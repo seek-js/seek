@@ -1,4 +1,5 @@
 # Extraction Strategy Landscape
+
 ## Research Notes for Seek.js Content Acquisition
 
 **Status:** Draft  
@@ -6,556 +7,144 @@
 **Area:** `extractor`  
 **Related Specs:** `../../specs/extractor/01-hybrid-extraction-architecture.md`
 
----
+## TL;DR
 
-## Executive Summary
+No single extraction mode covers static + SSR + SPA + docs systems.  
+Best strategy: local-first multi-mode acquisition with deterministic escalation, all modes normalized into `Seek Manifest`.
 
-Seek.js needs an extraction strategy that works across:
+## Scope
 
-- static documentation sites
-- SSR frameworks
-- MDX/Markdown-driven docs systems
-- client-rendered SPAs
-- managed SaaS indexing flows
-- multiple deployment providers
+This doc defines:
 
-There is no single acquisition mode that is ideal for all of these.
+- strategy-level mode landscape
+- comparative tradeoffs
+- recommended role per mode
+- v1 baseline stance
+- open questions for later specs
 
-A strategy that depends only on **static artifact parsing** will fail for many SSR frameworks.  
-A strategy that depends only on **remote crawling** will be too costly, too fragile, and too operationally heavy.  
-A strategy that depends only on **source plugins** will miss non-source-native sites and reintroduce framework lock-in.
+This doc does not define exact contracts.  
+Normative behavior belongs in `../../specs/extractor/`.
 
-The current best direction for Seek.js is therefore a **multi-mode extraction system** that:
+## Evaluation Criteria
 
-1. prefers local acquisition before remote crawl
-2. treats final user-visible content as the truth source
-3. supports source-native extraction where it materially improves fidelity
-4. normalizes all modes into a common intermediate representation
-5. escalates to heavier extraction modes only when cheaper paths fail
+Use same criteria for every mode:
 
-This document maps the strategy landscape and explains why the Seek.js extraction architecture is moving toward a hybrid model.
+- content fidelity (user-visible text + URL/anchors)
+- operational cost (time/compute/network/CI burden)
+- portability (framework/runtime/provider compatibility)
+- adoption friction (config/setup burden)
+- determinism (repeatability in CI/local)
+- scalability (large pages/locales/versions)
 
----
+## Mode Landscape
 
-## 1. Problem Context
 
-Extraction is the first irreversible step in the Seek.js pipeline.
+| Mode                    | Best fit                                 | Strength                                   | Weakness                                        | Recommended role                         |
+| ----------------------- | ---------------------------------------- | ------------------------------------------ | ----------------------------------------------- | ---------------------------------------- |
+| Source adapters         | MDX/Markdown docs ecosystems             | highest semantic cleanliness               | ecosystem coupling, not universal               | high-fidelity specialization             |
+| Static artifact parsing | true static builds                       | fast, cheap, deterministic                 | fails when artifacts not meaningful HTML        | default fast local path                  |
+| Local render fetch      | SSR frameworks                           | bridges SSR artifact gap, still local      | server lifecycle and route discovery complexity | default SSR path                         |
+| Local headless render   | shell-heavy/client-rendered pages        | captures final DOM when fetch insufficient | expensive, slow, brittle                        | strict local fallback                    |
+| Remote crawl            | inaccessible local builds/external sites | broad reach                                | highest ops cost and instability                | controlled fallback/premium managed path |
 
-If this step is wrong, every later stage becomes weaker:
 
-- citations point to the wrong place
-- sections are chunked poorly
-- vectors are generated from noisy or duplicated content
-- language/version boundaries get mixed together
-- browser-side retrieval quality drops
-- AI answers lose trustworthiness
+## Strategy Decision
 
-Because of that, the extraction strategy must be chosen from the realities of the modern web, not from idealized assumptions.
+### Why single-mode fails
 
-### The key reality
+- Source-only: misses non-source-native and runtime-injected content.
+- Static-only: fails on SSR systems without final build HTML.
+- Local-fetch-only: fails on shell-only pages.
+- Headless-only: too expensive as default.
+- Remote-crawl-only: high cost, auth friction, unstable previews.
 
-Modern sites do not all expose content in the same way:
+### Current best strategy
 
-- some emit static HTML files
-- some emit server bundles that only produce HTML when run
-- some keep the cleanest content in Markdown or MDX source
-- some expose meaningful content only after client-side rendering
-- some rely on route manifests or sitemaps for discoverability
-- some are easy to index locally
-- some are only realistically indexable through controlled fallback modes
+1. source adapter (when high-fidelity docs source available)
+2. static artifact parse (when final HTML artifacts exist)
+3. local render fetch (when SSR runtime required)
+4. local headless render (when shell detection triggers)
+5. remote crawl (only when local paths unavailable or explicitly chosen)
 
-A universal AI search framework must recognize this heterogeneity.
+## Local-First Principle
 
----
+Local-first wins because it:
 
-## 2. Evaluation Criteria
+- keeps extraction deterministic in build/CI
+- reduces network/auth complexity
+- lowers SaaS and crawl operations cost
+- improves debugging reproducibility
+- preserves provider agnosticism
 
-The extraction strategy should be judged against the following criteria.
+## Seek Manifest Role
 
-### 2.1 Content Fidelity
-How accurately does the mode capture:
-- the actual user-visible text
-- heading structure
-- canonical URL
-- anchor targets
-- locale/version boundaries
+Multi-mode strategy only works with one normalized output contract.
 
-### 2.2 Operational Cost
-How expensive is the mode in:
-- compute
-- latency
-- network
-- CI complexity
-- SaaS infrastructure burden
+Without shared manifest:
 
-### 2.3 Portability
-How well does the mode work across:
-- frameworks
-- runtimes
-- hosting providers
-- local builds
-- CI environments
+- compiler behavior drifts per mode,
+- parity testing collapses,
+- SaaS/local pipelines diverge.
 
-### 2.4 Adoption Friction
-How much setup does the user need?
-- zero config
-- light config
-- plugin installation
-- server lifecycle configuration
-- browser automation setup
+With shared manifest:
 
-### 2.5 Determinism
-Will repeated runs on the same input produce stable outputs?
+- compiler remains stable,
+- cross-mode quality comparison is possible,
+- new acquisition modes can be added without re-architecting pipeline.
 
-### 2.6 Scalability
-How well does the mode handle:
-- 1,000+ pages
-- 5,000+ pages
-- multiple locales
-- multiple versions
-
----
-
-## 3. Extraction Modes in the Landscape
-
-There are five meaningful acquisition strategies in the current Seek.js landscape.
-
-1. source adapters
-2. static artifact parsing
-3. local render fetching
-4. local headless rendering
-5. remote crawling
-
-These are not mutually exclusive. They are better understood as a stack of escalating acquisition methods.
-
----
-
-## 4. Strategy A — Source Adapter Extraction
-
-### Definition
-
-Seek.js integrates with a source-native content system and extracts data before or alongside HTML generation.
-
-Typical inputs:
-- Markdown
-- MDX
-- content collections
-- frontmatter
-- ASTs
-- docs-specific metadata
-
-### Best fit
-
-- Fumadocs
-- Nextra
-- Astro Starlight
-- other MDX/Markdown-heavy doc systems
-
-### Advantages
-
-- highest semantic cleanliness
-- less layout noise
-- direct access to headings and sections
-- access to frontmatter and source metadata
-- strong fit for docs-first frameworks
-- easier section-aware chunking inputs
-
-### Weaknesses
-
-- not universal
-- final URL may differ from source path
-- heading IDs may be finalized later in the rendering pipeline
-- custom components may inject text that source extraction misses
-- can create framework/content-system coupling
-
-### Key insight
-
-Source adapters are a **high-fidelity specialization**, not a universal foundation.
-
-They are excellent when the ecosystem is source-native, but they cannot be the only path Seek.js depends on.
-
-### Recommendation
-
-Seek.js should support source adapters as a first-class mode for docs frameworks, but should not require them for basic compatibility.
-
----
-
-## 5. Strategy B — Static Artifact Parsing
-
-### Definition
-
-Seek.js reads emitted HTML files from directories such as:
-- `dist/`
-- `build/`
-- `out/`
-
-and extracts content directly from those final artifacts.
-
-### Best fit
-
-- static site generators
-- exported docs sites
-- classic static hosting pipelines
-- pure static landing sites
-
-### Advantages
-
-- deterministic
-- fast
-- cheap
-- no server startup required
-- no network dependency
-- good fit for CI
-- works naturally with semantic HTML
-- ideal for static-first docs ecosystems
-
-### Weaknesses
-
-- fails when no meaningful HTML artifacts exist
-- fragile for SSR-first frameworks
-- may still include layout noise
-- depends on the final build directory actually containing rendered pages
-
-### Key insight
-
-Static artifact parsing is excellent when it applies, but it is not enough for a modern framework-agnostic product.
-
-### Recommendation
-
-Seek.js should keep this as a major local mode, but should not assume it covers SSR ecosystems.
-
----
-
-## 6. Strategy C — Local Render Fetching
-
-### Definition
-
-Seek.js starts the app's production server locally, discovers routes, and fetches rendered HTML from localhost.
-
-This is not a generic crawl of the internet. It is a controlled local acquisition mode.
-
-### Best fit
-
-- Next.js App Router
-- Remix
-- Nuxt SSR
-- SvelteKit SSR
-- SSR landing pages
-- frameworks that render HTML only when executed
-
-### Advantages
-
-- solves the SSR artifact gap
-- still local and CI-friendly
-- avoids public preview URL requirements
-- avoids most remote auth complexity
-- captures actual rendered HTML users receive
-- lower cost than remote crawl
-- easier to debug than internet-facing crawl flows
-
-### Weaknesses
-
-- requires lifecycle management for the local server
-- needs route discovery help
-- still vulnerable to app-specific runtime failures
-- some pages may return shell-heavy or incomplete HTML
-- requires careful timeout and readiness handling
-
-### Key insight
-
-This is likely the most important compatibility layer for SSR frameworks.
-
-### Recommendation
-
-Seek.js should treat Local Render Fetch as a first-class extraction mode, not as an afterthought.
-
----
-
-## 7. Strategy D — Local Headless Rendering
-
-### Definition
-
-Seek.js opens local routes in a headless browser, waits for content to render, then extracts from the final DOM.
-
-### Best fit
-
-- client-rendered SPAs
-- pages that return empty or shell-only HTML from normal fetch
-- advanced interactive sites with content revealed only after client execution
-
-### Advantages
-
-- captures the most complete rendered DOM
-- can handle shell-only apps
-- useful as a controlled local fallback
-- avoids internet-facing crawl variability
-
-### Weaknesses
-
-- expensive
-- slow
-- operationally heavier
-- more brittle than source/static/local-fetch modes
-- increases CI and environment setup complexity
-
-### Key insight
-
-Headless mode is necessary for some apps, but dangerous as a default.
-
-### Recommendation
-
-Seek.js should keep this as a strict fallback mode, enabled only when lighter paths are insufficient.
-
----
-
-## 8. Strategy E — Remote Crawling
-
-### Definition
-
-Seek.js or Seek SaaS crawls a live or preview URL remotely and extracts content over the network.
-
-### Best fit
-
-- sites not available in the local environment
-- managed indexing workflows
-- fallback for external or already-hosted sites
-- SaaS-friendly indexing for teams that do not want local extraction
-
-### Advantages
-
-- broad compatibility
-- can index already-deployed sites
-- useful for managed services
-- useful when local build integration is unavailable
-
-### Weaknesses
-
-- highest operational cost
-- auth complexity
-- preview instability
-- cookies, consent banners, environment drift
-- network latency
-- risk of runaway crawl scope
-- hardest mode to debug
-- easiest way to accidentally turn indexing into an infrastructure business
-
-### Key insight
-
-Remote crawl is valuable but dangerous as a default architecture.
-
-### Recommendation
-
-Seek.js should support remote crawling, but clearly demote it to controlled fallback or premium managed capability.
-
----
-
-## 9. Comparative Summary
-
-### Content fidelity
-Roughly:
-- source adapters: very high
-- local headless: very high
-- local render fetch: high
-- static artifact parse: high when artifacts are real
-- remote crawl: variable
-
-### Operational cost
-Roughly:
-- static artifact parse: low
-- source adapters: low to medium
-- local render fetch: medium
-- local headless: high
-- remote crawl: high to very high
-
-### Universality
-Roughly:
-- remote crawl: high
-- local render fetch: high for SSR
-- static artifact parse: high for static sites
-- local headless: high but expensive
-- source adapters: medium, ecosystem-specific
-
-### Recommended role
-- source adapters: high-fidelity specialization
-- static artifact parse: default fast path where artifacts exist
-- local render fetch: default SSR path
-- local headless: last-resort local fallback
-- remote crawl: controlled remote fallback
-
----
-
-## 10. Why a Single Strategy Fails
-
-### Source-only fails because
-- not all sites are MDX/Markdown-based
-- not all systems expose useful source metadata
-- non-docs landing sites often lack a content-native abstraction
-- custom rendering may change the final page meaning
-
-### Static-artifact-only fails because
-- SSR frameworks often do not emit final HTML artifacts
-- App Router and similar systems produce framework internals instead
-- some builds only become meaningful at runtime
-
-### Local-fetch-only fails because
-- some apps return shell-only HTML
-- client-only rendering still requires a browser runtime
-- route discovery may still be incomplete
-
-### Headless-only fails because
-- too slow
-- too heavy
-- poor default DX
-- expensive to scale in CI or SaaS
-
-### Remote-crawl-only fails because
-- infrastructure cost rises quickly
-- auth gets messy
-- preview URLs are unstable
-- debugging is painful
-- the product becomes defined by crawling operations
-
----
-
-## 11. The Emerging Seek.js Position
-
-The best extraction strategy is not a single mode.
-
-The best strategy is:
-
-### Local-first acquisition with mode escalation
-
-1. use source adapters where available and useful
-2. parse static artifacts when true HTML exists
-3. fetch locally rendered SSR output when static artifacts are insufficient
-4. escalate to local headless rendering only when shell detection requires it
-5. use remote crawl only when local extraction paths are unavailable or explicitly desired
-
-### Why this works
-
-This preserves:
-- portability
-- affordability
-- determinism
-- citation fidelity
-- adoption flexibility
-
-while still acknowledging real framework diversity.
-
----
-
-## 12. Relationship to the Seek Manifest
-
-The multi-mode strategy only works if all acquisition modes emit the same normalized output.
-
-That output is the Seek Manifest.
-
-This is the key abstraction that makes the whole system coherent.
-
-Without a shared manifest:
-- each mode would become its own indexing system
-- compiler behavior would drift by mode
-- testing would become much harder
-- SaaS and local flows would diverge
-
-With a shared manifest:
-- the compiler can stay stable
-- retrieval quality becomes easier to compare
-- parity testing becomes possible
-- new modes can be added without rewriting the rest of the system
-
----
-
-## 13. Implications for v1
-
-Based on current research, a strong v1 should include:
+## v1 Stance
 
 ### Must include
-- static artifact parse mode
-- local render fetch mode
-- semantic HTML defaults
-- remote crawl as a fallback
+
+- static artifact parsing
+- local render fetch
 - normalized manifest output
-- build-time package isolation
-- parser/runtime portability
+- remote crawl fallback (non-default)
+- build/runtime portability constraints
 
 ### High-value additions
-- source adapter support for MDX/Markdown docs systems
-- headless fallback for shell-only SPAs
-- route discovery precedence rules
+
+- source adapters for docs ecosystems
+- headless fallback for shell-only pages
+- route discovery precedence strategy
 - shell detection heuristics
 
-### Should avoid as a core identity
+### Avoid as product identity
+
 - framework lock-in
 - deep bundler coupling
-- remote crawling as the default path
-- always-on browser rendering
+- remote crawl as default
+- always-on browser rendering path
 
----
+## Risks and Failure Areas
 
-## 14. Open Research Questions
 
-The architecture direction is strong, but several questions remain open.
+| Risk area                 | Symptom                    | Mitigation direction                        |
+| ------------------------- | -------------------------- | ------------------------------------------- |
+| Route discovery conflicts | missing/duplicate pages    | precedence rules + canonical resolution     |
+| Shell detection errors    | empty/noisy extraction     | explicit heuristics + escalation thresholds |
+| SSR runtime failures      | local fetch instability    | startup/readiness/timeout contracts         |
+| Mode overuse cost         | slow CI/builds             | deterministic escalation and budgets        |
+| Mode divergence           | inconsistent index quality | strict manifest invariants + parity tests   |
 
-### 14.1 Source adapter fidelity
-How much of the final user-visible meaning can source adapters preserve without requiring final HTML reconciliation?
 
-### 14.2 Route discovery conflicts
-How should Seek.js resolve disagreement between:
-- sitemap
-- source adapter route data
-- internal link discovery
-- canonical tags
-- user overrides
+## Open Questions
 
-### 14.3 Shell detection
-How should Seek.js decide that locally fetched HTML is insufficient and should escalate to headless rendering?
+1. source adapter fidelity vs final rendered truth reconciliation?
+2. canonical route precedence when sitemap/links/canonical/source disagree?
+3. exact shell-detection thresholds for fetch -> headless escalation?
+4. extractor vs compiler ownership boundary for chunking hints?
+5. throughput/memory/timeout budgets by mode for large docs sites?
 
-### 14.4 Chunking boundary ownership
-Should the extractor emit:
-- normalized sections only
-- or fully chunked units
-- or both with hints
-
-### 14.5 Large-site operational budgets
-What throughput, memory, and timeout targets should define acceptable extraction performance across modes?
-
----
-
-## 15. Preliminary Conclusion
-
-The extraction strategy landscape strongly suggests that Seek.js should not be built as:
-
-- a pure HTML parser
-- a pure crawler
-- a pure plugin ecosystem
-- or a pure source-ingestion system
-
-It should instead be built as:
-
-> a local-first, multi-mode extraction system that chooses the lightest reliable acquisition strategy for a given project and normalizes all outputs into a stable manifest contract.
-
-That is the most practical path for:
-- framework coverage
-- deployment portability
-- good developer experience
-- manageable SaaS costs
-- long-term architectural flexibility
-
----
-
-## 16. Suggested Follow-Up Documents
-
-This research should directly feed into:
+## Feeds Into Specs
 
 - `../../specs/extractor/01-hybrid-extraction-architecture.md`
 - `../../specs/extractor/02-seek-manifest-schema.md`
 - `../../specs/extractor/03-extractor-compiler-contract.md`
 - `../../specs/extractor/04-probe-and-pivot-strategy.md`
-- `../../specs/extractor/05-route-discovery-and-conflict-resolution.md`
+- `../../specs/extractor/05-route-discovery-and-conflict-resolution.md` (planned)
 
----
+## Working Principle
 
-## 17. Working Principle
-
-> Extract from the best available local representation of what users actually read, and escalate only when necessary.
+Extract from best available local representation of what users read.  
+Escalate only when lighter reliable mode fails.
