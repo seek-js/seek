@@ -37,8 +37,6 @@ flowchart LR
     clientSearch --> optionalAi[OptionalEdgeAiSummary]
 ```
 
-
-
 ## Package Roles
 
 - `@seekjs/parser`: HTML/content extraction and section normalization.
@@ -60,6 +58,10 @@ flowchart LR
 3. `[specs/extractor/02-seek-manifest-schema.md](specs/extractor/02-seek-manifest-schema.md)`
 4. `[specs/extractor/03-extractor-compiler-contract.md](specs/extractor/03-extractor-compiler-contract.md)`
 5. `[specs/extractor/04-probe-and-pivot-strategy.md](specs/extractor/04-probe-and-pivot-strategy.md)`
+6. `[specs/extractor/05-source-adapter-contract.md](specs/extractor/05-source-adapter-contract.md)`
+7. `[specs/extractor/06-route-discovery.md](specs/extractor/06-route-discovery.md)`
+8. `[specs/extractor/07-chunking-strategy.md](specs/extractor/07-chunking-strategy.md)`
+9. `[specs/extractor/08-performance-budgets.md](specs/extractor/08-performance-budgets.md)`
 
 ## Current Status
 
@@ -91,8 +93,9 @@ Internal instructions stay outside publishable `docs/` folder.
 
 ### Quality Gates
 
+A list of quality gates for the AI agent:
+
 - Root `README.md` <= 220 lines.
 - Spec intro <= 80 lines before first normative section.
 - Checklist docs <= 250 lines.
 - Keep one source-of-truth per concept; other files link out.
-

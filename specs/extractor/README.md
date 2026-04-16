@@ -8,6 +8,10 @@ Extractor specs define contract for turning user-visible site content into norma
 2. `[02-seek-manifest-schema.md](02-seek-manifest-schema.md)`
 3. `[03-extractor-compiler-contract.md](03-extractor-compiler-contract.md)`
 4. `[04-probe-and-pivot-strategy.md](04-probe-and-pivot-strategy.md)`
+5. `[05-source-adapter-contract.md](05-source-adapter-contract.md)`
+6. `[06-route-discovery.md](06-route-discovery.md)`
+7. `[07-chunking-strategy.md](07-chunking-strategy.md)`
+8. `[08-performance-budgets.md](08-performance-budgets.md)`
 
 ## Scope
 

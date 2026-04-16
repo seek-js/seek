@@ -6,7 +6,7 @@ Public docs only. Keep ultra-minimal.
 
 Use `docs/` for:
 
-- quickstarts
+- quick starts
 - install/setup guides
 - usage guides and tutorials
 - integration guides

@@ -38,7 +38,6 @@ Use same criteria for every mode:
 
 ## Mode Landscape
 
-
 | Mode                    | Best fit                                 | Strength                                   | Weakness                                        | Recommended role                         |
 | ----------------------- | ---------------------------------------- | ------------------------------------------ | ----------------------------------------------- | ---------------------------------------- |
 | Source adapters         | MDX/Markdown docs ecosystems             | highest semantic cleanliness               | ecosystem coupling, not universal               | high-fidelity specialization             |
@@ -46,7 +45,6 @@ Use same criteria for every mode:
 | Local render fetch      | SSR frameworks                           | bridges SSR artifact gap, still local      | server lifecycle and route discovery complexity | default SSR path                         |
 | Local headless render   | shell-heavy/client-rendered pages        | captures final DOM when fetch insufficient | expensive, slow, brittle                        | strict local fallback                    |
 | Remote crawl            | inaccessible local builds/external sites | broad reach                                | highest ops cost and instability                | controlled fallback/premium managed path |
-
 
 ## Strategy Decision
 
@@ -118,7 +116,6 @@ With shared manifest:
 
 ## Risks and Failure Areas
 
-
 | Risk area                 | Symptom                    | Mitigation direction                        |
 | ------------------------- | -------------------------- | ------------------------------------------- |
 | Route discovery conflicts | missing/duplicate pages    | precedence rules + canonical resolution     |
@@ -126,7 +123,6 @@ With shared manifest:
 | SSR runtime failures      | local fetch instability    | startup/readiness/timeout contracts         |
 | Mode overuse cost         | slow CI/builds             | deterministic escalation and budgets        |
 | Mode divergence           | inconsistent index quality | strict manifest invariants + parity tests   |
-
 
 ## Open Questions
 

@@ -1,16 +1,14 @@
 # Seek.js Research Map
 
-Research = reasons, tradeoffs, experiments.  
+Research = reasons, tradeoffs, experiments.
 
 ## Folder Map
-
 
 | Area          | Purpose                                                                 | Start here                                     |
 | ------------- | ----------------------------------------------------------------------- | ---------------------------------------------- |
 | `extractor/`  | extraction strategy, SSR/static/crawl tradeoffs, parser/runtime choices | `[extractor/README.md](extractor/README.md)`   |
 | `platform/`   | deployment constraints and CI behavior                                  | `[platform/README.md](platform/README.md)`     |
 | `publishing/` | docs publishing and `seek` to website sync operations                   | `[publishing/README.md](publishing/README.md)` |
-
 
 ## Read Paths
 
