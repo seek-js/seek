@@ -32,3 +32,4 @@ Keep exploratory reasoning in `research/`.
 ## Current Focus
 
 - `[extractor/](extractor/README.md)`: core pipeline foundation for fidelity and index quality.
+- `[01-phase1-toolchain-implementation-spec.md](01-phase1-toolchain-implementation-spec.md)`: phased phase-1 tooling setup and verification spec.
