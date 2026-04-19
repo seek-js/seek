@@ -6,18 +6,22 @@ Explain end-to-end process for building and publishing Seek.js packages (librari
 
 ## Decision Snapshot (Web-verified)
 
-- `tsup` is still usable but no longer actively maintained by upstream.
-- `tsdown` is the active successor path for TypeScript library bundling.
-- `tsdown` compatibility with common `tsup` workflows exists, but Seek.js will start directly on `tsdown`.
-- `unbuild` is a Rollup-based build system from UnJS, strong for library packaging and bundleless workflows.
+- workspace + runtime: `bun`
+- bundler: `tsdown`
+- testing: `bun test`
+- quality: `biome`
+- versioning: `changesets`
+- publishing: `bun publish`
+
+Detail policy: this document records directional decisions and workflow shape. Exact command flags stay intentionally light here and are finalized in implementation PRs.
 
 ## 1) Package Lifecycle
 
 1. Write source code (`src/*.ts`)
-2. Build package (`tsdown` or `unbuild`) into `dist/*`
-3. Run validation (tests, lint, typecheck)
+2. Build package (`tsdown`) into `dist/*`
+3. Run validation (`bun test`, `biome check`, typecheck)
 4. Bump versions and changelog (`changesets`)
-5. Publish to npm registry
+5. Publish to npm registry (`bun publish`)
 6. Consumers install through npm/yarn/pnpm/bun
 
 ```mermaid
@@ -61,19 +65,14 @@ flowchart TD
 
 ## 3) Tool Responsibilities
 
-- `pnpm workspaces`: monorepo dependency management and local package linking
+- `bun workspaces`: monorepo dependency management and local package linking
 - `typescript`: type system and declaration output
 - `tsdown`: primary package build output (`dist`)
-- `unbuild`: secondary/optional build tool for specific library packaging cases
-- `vitest`: test runner
-- `eslint` + `prettier`: quality + formatting
+- `bun test`: test runner
+- `biome`: lint + format + import organization
 - `changesets`: coordinated versioning and changelog generation
+- `bun publish`: package upload to npm registry
 - `github actions`: CI automation for test/build/publish
-
-### `unbuild` in short
-
-`unbuild` is not a package manager.  
-It is a build system for JS/TS libraries (Rollup-based via UnJS ecosystem), useful when we need bundleless-style builds or UnJS-native conventions.
 
 ## 4) Package Metadata Needed for Multi-Manager Consumption
 
@@ -104,7 +103,7 @@ Required `package.json` fields:
 
 ```mermaid
 flowchart LR
-    srcTS[src TypeScript] --> bundler[tsdown or unbuild]
+    srcTS[src TypeScript] --> bundler[tsdown]
     bundler --> esmOut[dist index.js ESM]
     bundler --> cjsOut[dist index.cjs optional]
     bundler --> dtsOut[dist index.d.ts]
@@ -124,7 +123,7 @@ Developer flow:
 Release flow:
 
 - changesets computes version updates + changelog
-- CI publishes using npm token
+- CI publishes using Bun (`bun publish`) with npm token
 
 ```mermaid
 sequenceDiagram
@@ -160,12 +159,13 @@ sequenceDiagram
 
 For early Seek.js implementation phase:
 
-- `pnpm workspaces`
+- `bun workspaces`
 - `typescript`
 - `tsdown`
-- `vitest`
-- `eslint` + `prettier`
+- `bun test`
+- `biome`
 - `changesets`
+- `bun publish`
 
 Add Turborepo/Nx later only when CI graph complexity justifies extra tooling.
 
@@ -205,25 +205,28 @@ Use `rollup` later only if Seek.js needs advanced custom bundling behavior that 
 | distributable check | `npm pack` output installs and runs in clean temp project |
 
 
-## 12) Implementation Checklist (tsdown-first bootstrap)
+## 12) Implementation Checklist (bun + tsdown bootstrap)
 
 1. create workspace packages (`core`, `extractor`, `compiler`, `client`, `cli`)
 2. configure `tsdown` for library outputs (`esm`, optional `cjs`, `d.ts`)
-3. configure CLI package (`bin`, shebang, command entry)
-4. run runtime/artifact validation matrix
-5. run `npm pack` smoke install in clean temp project
-6. wire CI for test/build/release (`changesets` + npm publish)
+3. configure test/quality gates (`bun test`, `biome check`, `tsc --noEmit`)
+4. configure CLI package (`bin`, shebang, command entry)
+5. run runtime/artifact validation matrix
+6. run `npm pack` smoke install in clean temp project
+7. wire CI for versioning + publish (`changesets` + `bun publish`)
 
-## 13) Legacy Note
+## 13) Versioning vs Publishing Split
 
-If any old branch uses `tsup`, treat migration as legacy maintenance task.  
-It is not part of baseline Seek.js Phase-1 bootstrap flow.
+- `changesets` owns release intent (version bumps + changelog generation)
+- `bun publish` owns network upload to npm
+- recommended CI contract: `changesets/action` drives release state, project publish script uses Bun
+
+This split keeps changelog quality high while retaining Bun workspace-aware publish behavior.
 
 ## 14) References
 
-- `https://github.com/egoist/tsup` (maintenance notice context)
-- `https://tsdown.dev/guide/migrate-from-tsup` (legacy reference only)
-- `https://tsdown.dev/guide/faq`
+- `https://bun.sh/docs/pm/workspaces`
+- `https://bun.sh/docs/pm/cli/publish`
 - `https://github.com/rolldown/tsdown`
-- `https://github.com/unjs/unbuild`
-
+- `https://biomejs.dev/guides/getting-started/`
+- `https://github.com/changesets/changesets`

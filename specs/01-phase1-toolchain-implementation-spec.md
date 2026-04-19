@@ -8,11 +8,12 @@
 
 Seek.js Phase 1 toolchain standard:
 
-- workspace: `pnpm`
+- workspace: `bun` workspaces
 - language: `typescript`
 - bundler: `tsdown`
-- quality: `vitest`, `eslint`, `prettier`
-- release: `changesets` + CI publish
+- testing: `bun test`
+- quality: `biome`
+- release: `changesets` (versioning) + `bun publish` (CI publish)
 
 Goal: make package creation, build, validation, and publish deterministic across Node/Bun/Deno consumers with minimal setup friction.
 
@@ -24,7 +25,7 @@ This spec does not define extractor runtime behavior contracts.
 
 ## Current-State Precondition
 
-At acceptance time, this repository is documentation-first and does not yet contain the full package workspace implementation files (`package.json`, `pnpm-workspace.yaml`, `packages/*`).
+At acceptance time, this repository is documentation-first and does not yet contain the full package workspace implementation files (`package.json`, `packages/*`).
 
 Phase 0 therefore includes creating those baseline files explicitly.
 
@@ -37,11 +38,10 @@ Phase 0 therefore includes creating those baseline files explicitly.
 
 ### Why
 
-- `tsup` is not actively maintained upstream.
 - `tsdown` provides active path and familiar migration surface.
 - Phase 1 priority is shipping stable SDK contracts quickly, not deep bundler customization.
 
-Note: if future package needs justify `unbuild`, capture that in separate package-level decision record outside this Phase 1 baseline spec.
+Detail policy: this accepted spec sets phase contracts and verification intent. Exact script flags and per-runtime command details can be finalized during implementation PRs if they preserve contract outcomes.
 
 ## Architecture View
 
@@ -55,6 +55,8 @@ flowchart LR
     registry --> consumers[Node Bun Deno Consumers]
 ```
 
+
+
 ```mermaid
 flowchart LR
     p0[Phase 0 Bootstrap] --> p1[Phase 1 Build Setup]
@@ -63,6 +65,8 @@ flowchart LR
     p3 --> p4[Phase 4 Runtime and Artifact Validation]
     p4 --> p5[Phase 5 Release Pipeline]
 ```
+
+
 
 ## Determinism Definition
 
@@ -113,7 +117,6 @@ Stub policy for this phase:
 
 Create:
 
-- `pnpm-workspace.yaml`
 - `package.json`
 - `tsconfig.base.json`
 - `packages/core/package.json`
@@ -134,8 +137,8 @@ Create:
 
 ### Verification Commands
 
-- `pnpm install`
-- `pnpm -r list --depth -1`
+- `bun install`
+- `bun run workspaces:list` (or equivalent workspace listing command)
 
 ### Exit Evidence
 
@@ -202,8 +205,8 @@ Generated output (not committed unless policy says otherwise):
 
 ### Verification Commands
 
-- `pnpm -r build`
-- `pnpm -r build && pnpm -r build` (repeat build for stability check)
+- `bun run build`
+- `bun run build && bun run build` (repeat build for stability check)
 
 ### Exit Evidence
 
@@ -319,8 +322,9 @@ Create or update:
 
 ### Verification Commands
 
-- `pnpm -r build`
-- `pnpm -r exec npm pack --dry-run`
+- `bun run build`
+- `bunx changeset status` (metadata/release surface check)
+- `npm pack --dry-run`
 - `node packages/cli/dist/cli.js --help`
 
 ### Exit Evidence
@@ -367,8 +371,8 @@ Block broken outputs before runtime matrix and publish.
 ### Required checks
 
 - typecheck pass
-- test pass (`vitest`)
-- lint + format checks pass
+- test pass (`bun test`)
+- lint + format checks pass (`biome check` or split lint/format scripts)
 - build pass for all targeted packages
 
 ### File/Folder Changes
@@ -377,9 +381,7 @@ Create or update:
 
 - `package.json` (root scripts)
 - `.github/workflows/ci.yml` (or equivalent)
-- `vitest` config files
-- `eslint` config files
-- `prettier` config files
+- `biome.json`
 
 ### Artifacts Produced
 
@@ -388,11 +390,11 @@ Create or update:
 
 ### Verification Commands
 
-- `pnpm run typecheck`
-- `pnpm run test`
-- `pnpm run lint`
-- `pnpm run format:check`
-- `pnpm -r build`
+- `bun run typecheck`
+- `bun test`
+- `bun run lint`
+- `bun run format:check`
+- `bun run build`
 
 ### Exit Evidence
 
@@ -436,20 +438,24 @@ Prove packaged artifacts are consumable across target environments.
 
 ### Runtime matrix
 
-| Target | Library validation | CLI validation |
-| --- | --- | --- |
-| Node | install tarball, import package, execute smoke API | run `seek --help` from installed artifact |
-| Bun | install/import and execute smoke API | run CLI command |
-| Deno | import through `npm:@seekjs/*` smoke path | document adapter path if Node bin not native |
+
+| Target | Library validation                                 | CLI validation                               |
+| ------ | -------------------------------------------------- | -------------------------------------------- |
+| Node   | install tarball, import package, execute smoke API | run `seek --help` from installed artifact    |
+| Bun    | install/import and execute smoke API               | run CLI command                              |
+| Deno   | import through `npm:@seekjs/*` smoke path          | document adapter path if Node bin not native |
+
 
 ### Artifact matrix
 
-| Check | Expected outcome |
-| --- | --- |
-| `exports` map | entry resolution correct |
-| types | `.d.ts` discoverable |
-| package files | no accidental extra payloads |
-| `npm pack` | tarball installs and runs in clean temp project |
+
+| Check         | Expected outcome                                |
+| ------------- | ----------------------------------------------- |
+| `exports` map | entry resolution correct                        |
+| types         | `.d.ts` discoverable                            |
+| package files | no accidental extra payloads                    |
+| `npm pack`    | tarball installs and runs in clean temp project |
+
 
 ### File/Folder Changes
 
@@ -470,8 +476,8 @@ Generated output:
 
 ### Verification Commands
 
-- `pnpm run validate:artifacts`
-- `pnpm run validate:runtimes`
+- `bun run validate:artifacts`
+- `bun run validate:runtimes`
 
 ### Exit Evidence
 
@@ -501,7 +507,7 @@ Publish repeatable and auditable package releases from CI only.
 
 - changesets versioning
 - changelog generation
-- CI publish with npm token
+- CI publish with npm token via `bun publish`
 
 ### Out of Scope
 
@@ -517,7 +523,7 @@ Publish repeatable and auditable package releases from CI only.
 
 - versioning via `changesets`
 - changelog generation from changesets
-- CI publish path using npm token
+- CI publish path uses `bun publish` with npm token
 - no manual ad hoc publish from unverified artifacts
 
 ### File/Folder Changes
@@ -536,8 +542,8 @@ Create or update:
 
 ### Verification Commands
 
-- `pnpm changeset status`
-- `pnpm changeset version` (when preparing release)
+- `bunx changeset status`
+- `bunx changeset version` (when preparing release)
 - CI release workflow run
 
 ### Exit Evidence
@@ -555,12 +561,14 @@ Create or update:
 
 ## Risks and Mitigations
 
-| Risk | Impact | Mitigation | Detecting phase |
-| --- | --- | --- | --- |
-| ESM/CJS confusion | broken consumer imports | explicit output intent and `exports` checks | Phase 2, Phase 4 |
-| CLI runtime mismatch | command fails in some runtimes | runtime matrix smoke checks | Phase 4 |
-| package bloat | install/runtime inefficiency | strict `files` and `npm pack` checks | Phase 2, Phase 4 |
-| toolchain drift | inconsistent package behavior | phase gates + CI enforcement | Phase 3, Phase 5 |
+
+| Risk                 | Impact                         | Mitigation                                  | Detecting phase  |
+| -------------------- | ------------------------------ | ------------------------------------------- | ---------------- |
+| ESM/CJS confusion    | broken consumer imports        | explicit output intent and `exports` checks | Phase 2, Phase 4 |
+| CLI runtime mismatch | command fails in some runtimes | runtime matrix smoke checks                 | Phase 4          |
+| package bloat        | install/runtime inefficiency   | strict `files` and `npm pack` checks        | Phase 2, Phase 4 |
+| toolchain drift      | inconsistent package behavior  | phase gates + CI enforcement                | Phase 3, Phase 5 |
+
 
 ## Change Policy
 
