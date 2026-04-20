@@ -1,0 +1,40 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "seek",
+    },
+    "packages/cli": {
+      "name": "@seekjs/cli",
+      "version": "0.0.0",
+    },
+    "packages/client": {
+      "name": "@seekjs/client",
+      "version": "0.0.0",
+    },
+    "packages/compiler": {
+      "name": "@seekjs/compiler",
+      "version": "0.0.0",
+    },
+    "packages/core": {
+      "name": "@seekjs/core",
+      "version": "0.0.0",
+    },
+    "packages/extractor": {
+      "name": "@seekjs/extractor",
+      "version": "0.0.0",
+    },
+  },
+  "packages": {
+    "@seekjs/cli": ["@seekjs/cli@workspace:packages/cli"],
+
+    "@seekjs/client": ["@seekjs/client@workspace:packages/client"],
+
+    "@seekjs/compiler": ["@seekjs/compiler@workspace:packages/compiler"],
+
+    "@seekjs/core": ["@seekjs/core@workspace:packages/core"],
+
+    "@seekjs/extractor": ["@seekjs/extractor@workspace:packages/extractor"],
+  }
+}

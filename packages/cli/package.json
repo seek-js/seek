@@ -1,0 +1,8 @@
+{
+  "name": "@seekjs/cli",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'Phase 1 build setup pending'"
+  }
+}

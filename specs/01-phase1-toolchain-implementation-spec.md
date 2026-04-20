@@ -25,7 +25,7 @@ This spec does not define extractor runtime behavior contracts.
 
 ## Current-State Precondition
 
-At acceptance time, this repository is documentation-first and does not yet contain the full package workspace implementation files (`package.json`, `packages/*`).
+At acceptance time, this repository is documentation-first and does not yet contain the full package workspace implementation files (`package.json`, `packages/`*).
 
 Phase 0 therefore includes creating those baseline files explicitly.
 
@@ -587,3 +587,4 @@ No package is publish-ready until:
 - Phase 3 quality gates pass,
 - Phase 4 matrix passes (or approved exceptions exist), and
 - Phase 5 release checks run from CI against same validated commit SHA.
+

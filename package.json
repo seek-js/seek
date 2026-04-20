@@ -1,0 +1,11 @@
+{
+  "name": "seek",
+  "private": true,
+  "packageManager": "bun@1.2.13",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "workspaces:list": "bun pm ls --all"
+  }
+}
