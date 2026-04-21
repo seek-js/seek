@@ -3,6 +3,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "echo 'Phase 1 build setup pending'"
+    "build": "tsdown -c tsdown.config.mts src/cli.ts --format esm --dts --out-dir dist"
   }
 }
