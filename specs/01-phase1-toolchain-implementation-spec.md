@@ -233,6 +233,15 @@ Ensure install and runtime resolution correctness across package managers and ta
 
 - Phase 1 complete
 
+### Package Set Policy
+
+Phase 2 applies full metadata contract to active publish-intended packages for current iteration.
+
+- active package set (current): `@seekjs/extractor`, `@seekjs/cli`
+- placeholder packages may keep minimal scaffold metadata until promoted to active set
+
+When active package set changes, update this spec (or companion phase note) in same PR.
+
 ### In Scope
 
 - package entry metadata
@@ -246,13 +255,16 @@ Ensure install and runtime resolution correctness across package managers and ta
 
 ### Implementation Actions
 
-1. Add required metadata fields in every package manifest.
-2. Define `exports` and `types` contracts aligned with built outputs.
-3. Define `files` allowlist to constrain publish payload.
-4. For CLI package, define minimal executable contract only (entry path + `--help` smoke), not final feature surface.
-5. Verify packed artifact matches declared metadata paths.
+1. Confirm active package set for current iteration.
+2. Add required metadata fields in active package manifests.
+3. Define `exports` and `types` contracts aligned with built outputs.
+4. Define `files` allowlist to constrain publish payload.
+5. For CLI package, define minimal executable contract only (entry path + `--help` smoke), not final feature surface.
+6. Verify packed artifact matches declared metadata paths.
 
-### Required package fields
+### Required package fields (active packages)
+
+Required for active library packages:
 
 - `name`
 - `version`
@@ -260,7 +272,17 @@ Ensure install and runtime resolution correctness across package managers and ta
 - `types`
 - `main`/`module` or equivalent explicit ESM contract
 - `files`
-- `bin` (CLI package only)
+
+Required for active CLI-only packages:
+
+- `name`
+- `version`
+- `bin`
+- `files`
+
+Conditional for CLI package:
+
+- `exports` and `types` are required only if CLI package exposes a runtime API for imports.
 
 ### CLI minimal metadata contract (required)
 
@@ -268,10 +290,27 @@ CLI package in Phase 2 must satisfy this minimum shape:
 
 - `bin.seek` points to built CLI entry under `dist/`
 - built CLI entry starts with shebang: `#!/usr/bin/env node`
-- `exports` for CLI root points to library-safe entry (if package also exposes API)
 - `files` includes CLI built entry and excludes source-only/internal files
 
-Example `packages/cli/package.json` shape:
+### CLI API exposure rules (when importing from `@seekjs/cli`)
+
+Only add API metadata when CLI package intentionally exposes importable runtime API.
+
+If CLI remains command-only:
+
+- do not add `exports`/`types` for `.` API surface
+- keep contract focused on `bin` + executable behavior
+
+If CLI also exposes API:
+
+1. Add API entry source (for example `src/index.ts`) and include it in build output.
+2. Ensure build emits API artifacts (for example `dist/index.js`, `dist/index.d.ts`).
+3. Add `exports["."].import` and `exports["."].types` pointing to built API files.
+4. Add top-level `types` aligned with API declaration output.
+5. Re-run `npm pack --dry-run` and verify all metadata paths resolve from packed artifact.
+6. Keep `bin.seek` mapped to CLI executable entry independently of API exports.
+
+Example `packages/cli/package.json` shape (command-only):
 
 ```json
 {
@@ -281,13 +320,6 @@ Example `packages/cli/package.json` shape:
   "bin": {
     "seek": "./dist/cli.js"
   },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ]
@@ -309,7 +341,7 @@ Notes:
 
 Update:
 
-- `packages/*/package.json`
+- `packages/<active>/package.json`
 
 Create or update:
 
@@ -323,19 +355,19 @@ Create or update:
 ### Verification Commands
 
 - `bun run build`
-- `bunx changeset status` (metadata/release surface check)
-- `npm pack --dry-run`
+- `(cd packages/extractor && npm pack --dry-run)`
+- `(cd packages/cli && npm pack --dry-run)`
 - `node packages/cli/dist/cli.js --help`
 
 ### Exit Evidence
 
 - package metadata supports install via npm/yarn/pnpm/bun
-- `exports` and `types` resolve from packed artifact shape
+- active package `exports` and `types` resolve from packed artifact shape
 - CLI package exposes `seek` bin path and `--help` smoke command executes successfully
 
 ### Failure/Exception Handling
 
-- phase fails if any publishable package has missing required metadata
+- phase fails if any active publish-intended package has missing required metadata
 - phase fails if CLI `bin` target is missing, non-executable, or missing shebang after build
 
 ### Owner

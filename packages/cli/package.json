@@ -2,6 +2,12 @@
   "name": "@seekjs/cli",
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "seek": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsdown -c tsdown.config.mts src/cli.ts --format esm --dts --out-dir dist"
   }
