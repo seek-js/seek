@@ -1,5 +1,8 @@
 node_modules/
 packages/*/dist/
+packages/*/src/*.js
+packages/*/src/*.d.ts
 .DS_Store
 .agents/
 skills-lock.json
+*.tsbuildinfo
