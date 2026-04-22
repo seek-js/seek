@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-describe("phase3 quality gates", () => {
-	test("smoke", () => {
+describe("ci harness smoke", () => {
+	test("bun test is reachable and executes", () => {
 		expect(true).toBe(true);
 	});
 });
