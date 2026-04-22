@@ -1,0 +1,16 @@
+{
+  "name": "seek",
+  "private": true,
+  "packageManager": "bun@1.3.5",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "workspaces:list": "bun pm ls --all",
+    "build": "bun run --workspaces build"
+  },
+  "devDependencies": {
+    "tsdown": "^0.21.9",
+    "typescript": "^6.0.3"
+  }
+}
