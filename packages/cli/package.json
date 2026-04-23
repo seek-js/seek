@@ -9,6 +9,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown -c tsdown.config.mts src/cli.ts --format esm --dts --out-dir dist"
+    "build": "tsdown -c tsdown.config.mts src/cli.ts --format esm --dts --out-dir dist",
+    "format-and-lint": "biome check .",
+    "format-and-lint:fix": "biome check . --write"
   }
 }
