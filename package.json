@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "tsdown": "^0.21.9",
+    "turbo": "^2.9.6",
     "typescript": "^6.0.3"
   }
 }

@@ -3,3 +3,5 @@ packages/*/dist/
 .DS_Store
 .agents/
 skills-lock.json
+.turbo
+
