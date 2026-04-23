@@ -9,6 +9,7 @@ Research = reasons, tradeoffs, experiments.
 | `extractor/`  | extraction strategy, SSR/static/crawl tradeoffs, parser/runtime choices | `[extractor/README.md](extractor/README.md)`   |
 | `platform/`   | deployment constraints and CI behavior                                  | `[platform/README.md](platform/README.md)`     |
 | `publishing/` | docs publishing and `seek` to website sync operations                   | `[publishing/README.md](publishing/README.md)` |
+| `tooling/`   | toolchain rationale and implementation research                     | `[tooling-toolchain-implementation-research.md](tooling-toolchain-implementation-research.md)` |
 
 ## Read Paths
 
@@ -25,6 +26,11 @@ Research = reasons, tradeoffs, experiments.
 1. subfolder README (`extractor`, `platform`, or `publishing`)
 2. target deep research file
 3. mapped spec file in `../specs/`
+
+### Path C: Tooling contributor
+
+1. `[tooling-toolchain-implementation-research.md](tooling-toolchain-implementation-research.md)`
+2. `[../specs/02-phase1-toolchain-implementation-spec.md](../specs/02-phase1-toolchain-implementation-spec.md)`
 
 ## Decision Handoff Rule
 
