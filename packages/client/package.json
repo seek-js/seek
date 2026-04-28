@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsdown -c tsdown.config.mts src/index.ts --format esm --dts --out-dir dist"
+    "build": "tsdown -c tsdown.config.mts src/index.ts --format esm --dts --out-dir dist",
+    "format-and-lint": "biome check .",
+    "format-and-lint:fix": "biome check . --write"
   }
 }
