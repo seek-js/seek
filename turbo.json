@@ -1,8 +1,19 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "tasks": {
-    "format-and-lint": {},
-    "format-and-lint:fix": {
+    "lint": {},
+    "format:check": {},
+    "format:fix": {
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": ["tsconfig.tsbuildinfo", "packages/*/tsconfig.tsbuildinfo"]
+    },
+    "test": {
+      "cache": false
+    },
+    "validate:metadata": {
       "cache": false
     },
     "build": {

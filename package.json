@@ -7,12 +7,27 @@
   ],
   "scripts": {
     "workspaces:list": "bun pm ls --all",
+    "prepare": "husky",
+    "precommit:check": "lint-staged",
     "build": "bun run --workspaces build",
-    "format-and-lint": "biome check .",
-    "format-and-lint:fix": "biome check . --write"
+    "typecheck": "tsc -b --pretty false --noEmit",
+    "test": "bun test",
+    "lint": "biome lint .",
+    "format:check": "biome check .",
+    "format:fix": "biome check . --write",
+    "validate:metadata": "node ./scripts/validate-metadata.mjs",
+    "check:metadata": "bun run build && bun run validate:metadata",
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test && bun run build && bun run validate:metadata"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,jsx,json,md,yml,yaml}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.12",
+    "@biomejs/biome": "^2.4.13",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
     "tsdown": "^0.21.9",
     "turbo": "^2.9.6",
     "typescript": "^6.0.3"
