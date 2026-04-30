@@ -9,6 +9,7 @@
     "workspaces:list": "bun pm ls --all",
     "prepare": "husky",
     "precommit:check": "lint-staged",
+    "commitmsg:check": "commitlint --edit",
     "build": "bun run --workspaces build",
     "typecheck": "tsc -b --pretty false --noEmit",
     "test": "bun test",
@@ -26,6 +27,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
     "tsdown": "^0.21.9",
