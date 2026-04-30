@@ -130,17 +130,160 @@ These are status checkpoints, not normative phased requirements.
 
 **Status:** In progress
 
-- active publish-surface metadata exists for key packages
-- metadata and artifact-shape validation is partially established
-- remaining work: fully codify and enforce metadata verification as a stable gate
+#### Objective
+
+Make publish-intended packages metadata-correct and artifact-aligned for the current setup stage, so packaging contracts are reliable before moving forward.
+
+#### Scope for current stage
+
+- Bun + tsdown workflow remains primary.
+- Validation focuses on manifest correctness and built artifact alignment.
+- Full tarball/install matrix validation is deferred to later hardening phases.
+
+#### Implementation requirements
+
+1. Define active package set and package role:
+  - package role: `library`, `cli`, or `internal`
+  - publish intent: `yes` or `no`
+2. Standardize required manifest fields for active publish-intended packages.
+3. Ensure all metadata paths point to built artifacts under `dist/`.
+4. Add a root metadata validator command (`validate:metadata`).
+5. Fail Phase 2 checks on any metadata contract mismatch.
+
+#### Required manifest contract
+
+For active publish-intended library packages:
+
+- required keys: `name`, `version`, `type`, `exports`, `types`, `files`
+- `exports`/`types` paths must resolve to built files
+- runtime entries must not point to `src/`
+
+For active publish-intended CLI packages:
+
+- required keys: `name`, `version`, `type`, `bin`, `files`
+- `bin.seek` must point to built CLI file in `dist/`
+- CLI built entry must preserve shebang (`#!/usr/bin/env node`)
+
+For non-publish/internal packages:
+
+- minimal scaffold metadata is allowed
+- they must not violate workspace build/typecheck assumptions
+
+#### `validate:metadata` contract
+
+`validate:metadata` must run as a deterministic script and produce non-zero exit on failure.
+
+Checks performed:
+
+1. Required keys exist by package type.
+2. `exports`, `types`, and `bin` targets resolve to real files after build.
+3. Referenced runtime/type paths stay within package boundary.
+4. Public runtime entries do not resolve to source-only paths.
+5. CLI entry contains node shebang.
+
+Output requirements:
+
+- print package-scoped, actionable failures
+- include missing key or broken path in each error
+- exit `0` only when all active package contracts pass
+
+#### Required execution path (current stage)
+
+1. `bun run build`
+2. `bun run validate:metadata`
+
+Optional local combined check:
+
+- `bun run build && bun run validate:metadata`
+
+#### Exit criteria to mark Phase 2 complete
+
+- active package set and publish intent are explicitly documented
+- all active publish-intended package manifests satisfy required contract fields
+- `validate:metadata` passes from a clean build
+- no public metadata path references unresolved or source-only files
+- CLI metadata contract passes (`bin` target + shebang)
+
+#### Deferred to later phases
+
+- tarball payload validation (`npm pack --dry-run` / packed file audits)
+- clean-environment install/import smoke across package managers
+- runtime compatibility matrix execution across Node/Bun/Deno
 
 ### Phase 3: Quality Gates
 
 **Status:** In progress
 
-- quality tooling and scripts are present
-- quality gate intent is established (typecheck/test/lint/format/build)
-- remaining work: align local and CI gates, stabilize config/scripts, and ensure fail-closed behavior
+#### Objective
+
+Establish fail-closed quality gates with local and CI parity so regressions are blocked before merge.
+
+#### Required gate contract
+
+The following root checks are required and must pass for a green quality gate:
+
+- `typecheck`
+- `test`
+- `lint`
+- `format:check`
+- `build`
+- `validate:metadata`
+
+Aggregate root gate:
+
+- `check` must execute the full required gate contract.
+
+#### Turbo orchestration contract
+
+Turbo is the execution and caching layer for workspace quality tasks.
+
+- Workspace tasks (`build`, `typecheck`, `lint`, `test`, `format:check`) must be defined in `turbo.json`.
+- Dependency-aware ordering must be preserved where required.
+- Root quality scripts may call Turbo-backed commands, but gate semantics remain defined by this spec.
+
+#### Typecheck stability contract
+
+Typecheck gate must use deterministic TypeScript project references:
+
+- root `tsconfig.json` references all workspace packages participating in checks
+- package `tsconfig.json` files set `composite: true` and extend shared baseline
+- incremental artifacts (`*.tsbuildinfo`) are ignored from version control
+
+#### Pre-commit contract
+
+Pre-commit checks must be fast and focused on staged changes.
+
+- include staged-file lint/format checks
+- avoid full workspace build/test/typecheck in pre-commit
+- keep full enforcement in local aggregate gate and CI
+
+#### CI parity contract
+
+CI must execute the same aggregate quality semantics as local development:
+
+- install with Bun
+- run root aggregate gate (`bun run check`)
+- fail on first gate violation
+
+#### Verification checklist
+
+Phase 3 implementation is valid when all commands below pass:
+
+- `bun run lint`
+- `bun run format:check`
+- `bun run typecheck`
+- `bun run test`
+- `bun run build`
+- `bun run validate:metadata`
+- `bun run check`
+
+#### Exit criteria to mark Phase 3 complete
+
+- local and CI gate behavior are parity-aligned through `check`
+- Biome config and scripts are valid for installed version
+- Turbo pipeline is configured for all required workspace quality tasks
+- typecheck gate is stable (no structural config failures)
+- pre-commit checks are active and fast
 
 ### Phase 4: Runtime and Artifact Validation
 
