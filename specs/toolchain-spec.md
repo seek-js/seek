@@ -31,8 +31,8 @@ The following decisions are standard for this repository:
 3. Package bundler baseline is **tsdown**.
 4. Linting and formatting baseline is **Biome**.
 5. Task orchestration baseline is **Turbo**.
-6. Shared TypeScript baseline config is provided through `**@seek/typescript-config`**.
-7. Release versioning uses **Changesets** and CI publish flow uses `**bun publish`**.
+6. Shared TypeScript baseline config is provided through **`@seek/typescript-config`**.
+7. Release versioning uses **Changesets** and CI publish flow uses **`bun publish`**.
 
 Any deviation from these defaults requires a documented spec update and rationale.
 

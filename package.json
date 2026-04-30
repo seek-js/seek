@@ -10,7 +10,7 @@
     "prepare": "husky",
     "precommit:check": "lint-staged",
     "commitmsg:check": "commitlint --edit",
-    "build": "bun run --workspaces build",
+    "build": "turbo run build",
     "typecheck": "tsc -b --pretty false --noEmit",
     "test": "bun test",
     "lint": "biome lint .",
