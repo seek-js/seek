@@ -28,7 +28,14 @@ export async function validatePackage(pkgConfig, options = {}) {
   const rootDir = options.rootDir ?? ROOT_DIR;
   const packageRoot = path.resolve(rootDir, pkgConfig.dir);
   const packageJsonPath = path.join(packageRoot, 'package.json');
-  const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+  let packageJson;
+
+  try {
+    packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return [`unable to read or parse package.json (${message})`];
+  }
 
   if (packageJson.name !== pkgConfig.name) {
     errors.push(`name mismatch (expected "${pkgConfig.name}", got "${packageJson.name ?? 'missing'}")`);
