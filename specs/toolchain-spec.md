@@ -246,11 +246,12 @@ Aggregate root gate:
 
 #### Turbo orchestration contract
 
-Turbo is the execution and caching layer for workspace quality tasks.
+Turbo is used as the orchestration/caching layer for build execution in the current stage.
 
-- Workspace tasks (`build`, `typecheck`, `lint`, `test`, `format:check`) must be defined in `turbo.json`.
-- Dependency-aware ordering must be preserved where required.
-- Root quality scripts may call Turbo-backed commands, but gate semantics remain defined by this spec.
+- `build` must be defined in `turbo.json` with dependency-aware ordering.
+- Non-build quality tasks (`typecheck`, `lint`, `test`, `format:check`) remain root-level checks in this stage.
+- Full Turbo task parity for non-build checks is intentionally deferred until package script surfaces are standardized across workspaces.
+- Gate semantics remain defined by this spec regardless of whether execution is Turbo-backed or root-direct.
 
 #### Typecheck stability contract
 
@@ -292,7 +293,7 @@ Phase 3 implementation is valid when all commands below pass:
 
 - local and CI gate behavior are parity-aligned through `check`
 - Biome config and scripts are valid for installed version
-- Turbo pipeline is configured for all required workspace quality tasks
+- Turbo pipeline is correctly configured for current-stage build orchestration
 - typecheck gate is stable (no structural config failures)
 - pre-commit checks are active and fast
 
