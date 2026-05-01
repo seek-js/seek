@@ -23,6 +23,20 @@ async function writePackageJson(packageDir: string, content: object) {
   await writeFile(path.join(packageDir, 'package.json'), `${JSON.stringify(content, null, 2)}\n`);
 }
 
+const extractorConfig = {
+  name: '@seekjs/extractor',
+  role: 'library',
+  dir: 'packages/extractor',
+  requiredKeys: ['name', 'version', 'type', 'exports', 'types', 'files'],
+} as const;
+
+const cliConfig = {
+  name: '@seekjs/cli',
+  role: 'cli',
+  dir: 'packages/cli',
+  requiredKeys: ['name', 'version', 'type', 'bin', 'files'],
+} as const;
+
 describe('validatePackage', () => {
   test('passes for valid library metadata', async () => {
     const rootDir = await createTempWorkspace();
@@ -42,15 +56,7 @@ describe('validatePackage', () => {
       files: ['dist'],
     });
 
-    const errors = await validatePackage(
-      {
-        name: '@seekjs/extractor',
-        role: 'library',
-        dir: 'packages/extractor',
-        requiredKeys: ['name', 'version', 'type', 'exports', 'types', 'files'],
-      },
-      { rootDir },
-    );
+    const errors = await validatePackage(extractorConfig, { rootDir });
 
     expect(errors).toEqual([]);
   });
@@ -67,15 +73,7 @@ describe('validatePackage', () => {
       files: ['dist'],
     });
 
-    const errors = await validatePackage(
-      {
-        name: '@seekjs/extractor',
-        role: 'library',
-        dir: 'packages/extractor',
-        requiredKeys: ['name', 'version', 'type', 'exports', 'types', 'files'],
-      },
-      { rootDir },
-    );
+    const errors = await validatePackage(extractorConfig, { rootDir });
 
     expect(errors).toContain('missing required key "exports"');
   });
@@ -98,15 +96,7 @@ describe('validatePackage', () => {
       files: ['src'],
     });
 
-    const errors = await validatePackage(
-      {
-        name: '@seekjs/extractor',
-        role: 'library',
-        dir: 'packages/extractor',
-        requiredKeys: ['name', 'version', 'type', 'exports', 'types', 'files'],
-      },
-      { rootDir },
-    );
+    const errors = await validatePackage(extractorConfig, { rootDir });
 
     expect(errors).toContain('files must include "dist" for active publish package');
   });
@@ -128,16 +118,48 @@ describe('validatePackage', () => {
       files: ['dist'],
     });
 
-    const errors = await validatePackage(
-      {
-        name: '@seekjs/cli',
-        role: 'cli',
-        dir: 'packages/cli',
-        requiredKeys: ['name', 'version', 'type', 'bin', 'files'],
-      },
-      { rootDir },
-    );
+    const errors = await validatePackage(cliConfig, { rootDir });
 
     expect(errors).toContain('bin.seek target missing shebang (./dist/cli.js)');
+  });
+
+  test('fails when package.json is missing', async () => {
+    const rootDir = await createTempWorkspace();
+
+    const errors = await validatePackage(extractorConfig, { rootDir });
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('unable to read or parse package.json at');
+  });
+
+  test('fails when package.json contains invalid JSON', async () => {
+    const rootDir = await createTempWorkspace();
+    const packageDir = path.join(rootDir, 'packages/extractor');
+    await mkdir(packageDir, { recursive: true });
+    await writeFile(path.join(packageDir, 'package.json'), '{"name": "@seekjs/extractor",');
+
+    const errors = await validatePackage(extractorConfig, { rootDir });
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('unable to read or parse package.json at');
+  });
+
+  test('fails when cli bin target is missing', async () => {
+    const rootDir = await createTempWorkspace();
+    const packageDir = path.join(rootDir, 'packages/cli');
+
+    await writePackageJson(packageDir, {
+      name: '@seekjs/cli',
+      version: '0.0.0',
+      type: 'module',
+      bin: {
+        seek: './dist/cli.js',
+      },
+      files: ['dist'],
+    });
+
+    const errors = await validatePackage(cliConfig, { rootDir });
+
+    expect(errors).toContain('bin.seek target not found (./dist/cli.js)');
   });
 });

@@ -34,7 +34,7 @@ export async function validatePackage(pkgConfig, options = {}) {
     packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return [`unable to read or parse package.json (${message})`];
+    return [`unable to read or parse package.json at ${packageJsonPath} (${message})`];
   }
 
   if (packageJson.name !== pkgConfig.name) {
@@ -74,10 +74,18 @@ export async function validatePackage(pkgConfig, options = {}) {
     const binPath = getValueByPath(packageJson, ['bin', 'seek']);
     if (typeof binPath === 'string' && binPath.trim() !== '') {
       const resolvedBinPath = path.resolve(packageRoot, binPath);
-      const cliFile = await readFile(resolvedBinPath, 'utf8').catch(() => null);
-      if (cliFile == null) {
-        errors.push(`bin.seek target not found (${binPath})`);
-      } else if (!cliFile.startsWith('#!/usr/bin/env node')) {
+      let cliFile;
+      try {
+        cliFile = await readFile(resolvedBinPath, 'utf8');
+      } catch (error) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+          errors.push(`bin.seek target not found (${binPath})`);
+        } else {
+          const message = error instanceof Error ? error.message : String(error);
+          errors.push(`unable to read bin.seek target (${binPath}): ${message}`);
+        }
+      }
+      if (typeof cliFile === 'string' && !cliFile.startsWith('#!/usr/bin/env node')) {
         errors.push(`bin.seek target missing shebang (${binPath})`);
       }
     } else {

@@ -15,7 +15,7 @@
     "lint": "biome lint .",
     "format:check": "biome format .",
     "format:fix": "biome format . --write",
-    "validate:metadata": "node ./scripts/validate-metadata.mjs",
+    "validate:metadata": "bun ./scripts/validate-metadata.mjs",
     "validate:publint": "bunx publint packages/extractor && bunx publint packages/cli",
     "validate:attw": "bunx attw --pack packages/extractor --profile esm-only",
     "validate:package": "bun run validate:publint && bun run validate:attw",
