@@ -7,12 +7,34 @@
   ],
   "scripts": {
     "workspaces:list": "bun pm ls --all",
+    "prepare": "husky",
+    "precommit:check": "lint-staged",
     "build": "bun run --workspaces build",
-    "format-and-lint": "biome check .",
-    "format-and-lint:fix": "biome check . --write"
+    "typecheck": "tsc -b --pretty false --noEmit",
+    "test": "bun test",
+    "lint": "biome lint .",
+    "format:check": "biome format .",
+    "format:fix": "biome format . --write",
+    "validate:metadata": "bun ./scripts/validate-metadata.mjs",
+    "validate:publint": "bunx publint packages/extractor && bunx publint packages/cli",
+    "validate:attw": "bunx attw --pack packages/extractor --profile esm-only",
+    "validate:package": "bun run validate:publint && bun run validate:attw",
+    "check:metadata": "bun run build && bun run validate:metadata",
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test && bun run build && bun run validate:metadata && bun run validate:package"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,jsx,json,md,yml,yaml}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.12",
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@biomejs/biome": "^2.4.13",
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "publint": "^0.3.18",
     "tsdown": "^0.21.9",
     "turbo": "^2.9.6",
     "typescript": "^6.0.3"

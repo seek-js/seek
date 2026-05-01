@@ -1,10 +1,6 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "tasks": {
-    "format-and-lint": {},
-    "format-and-lint:fix": {
-      "cache": false
-    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
