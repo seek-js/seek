@@ -178,10 +178,11 @@ For non-publish/internal packages:
 Checks performed:
 
 1. Required keys exist by package type.
-2. `exports`, `types`, and `bin` targets resolve to real files after build.
-3. Referenced runtime/type paths stay within package boundary.
-4. Public runtime entries do not resolve to source-only paths.
-5. CLI entry contains node shebang.
+2. Active package `name` matches expected contract value.
+3. Publish payload policy includes `dist` in `files`.
+4. For library packages, `exports["."].import`, `exports["."].types`, and root `types` are present and non-empty.
+5. For CLI packages, `bin.seek` exists, resolves to a readable file, and contains the node shebang.
+6. Package manifest read/parse failures are reported as package-scoped validation errors.
 
 Output requirements:
 
@@ -195,6 +196,8 @@ Output requirements:
 - `validate:publint`: packaging contract and compatibility checks
 - `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`)
 - `validate:package`: aggregate package validation (`publint` + ATTW)
+
+Deep path resolution semantics (runtime/source path shape, boundary guarantees, resolver compatibility) are enforced through `validate:package` tooling, not duplicated in `validate:metadata`.
 
 #### Required execution path (current stage)
 
@@ -239,6 +242,7 @@ The following root checks are required and must pass for a green quality gate:
 - `format:check`
 - `build`
 - `validate:metadata`
+- `validate:package`
 
 Aggregate root gate:
 
@@ -246,12 +250,49 @@ Aggregate root gate:
 
 #### Turbo orchestration contract
 
-Turbo is used as the orchestration/caching layer for build execution in the current stage.
+Turbo configuration is retained in-repo for staged migration, while current execution remains Bun workspace-driven.
 
-- `build` must be defined in `turbo.json` with dependency-aware ordering.
+- `build` remains executed via root Bun workspace command in this stage.
+- `build` task metadata in `turbo.json` is retained for migration continuity.
 - Non-build quality tasks (`typecheck`, `lint`, `test`, `format:check`) remain root-level checks in this stage.
 - Full Turbo task parity for non-build checks is intentionally deferred until package script surfaces are standardized across workspaces.
 - Gate semantics remain defined by this spec regardless of whether execution is Turbo-backed or root-direct.
+
+#### Turbo migration plan (target-state contract)
+
+This section defines the intended migration path and end-state for Turbo so implementation can be resumed later without re-deciding core contracts.
+
+Target state:
+
+- Root `build` is executed through Turbo (`turbo run build`) as the default path.
+- Workspace quality tasks (`build`, `typecheck`, `lint`, `test`, `format:check`) are defined in `turbo.json` and mapped to package scripts.
+- Dependency-aware ordering is enforced where required:
+  - `build` uses `dependsOn: ["^build"]`
+  - `typecheck` uses `dependsOn: ["^typecheck"]` once package scripts exist
+- Cache behavior is explicit:
+  - deterministic artifact tasks declare `outputs`
+  - side-effect/volatile tasks (for example broad tests) may set `cache: false`
+
+Staged rollout requirements:
+
+1. Standardize package-level scripts across active workspace packages for `lint`, `format:check`, `typecheck`, and `test`.
+2. Add matching task definitions in `turbo.json` with dependency/caching metadata.
+3. Switch root scripts from direct execution to Turbo-backed execution (`turbo run <task>`), beginning with `build`.
+4. Preserve local/CI parity by keeping `bun run check` as the aggregate entrypoint while changing internals.
+5. Validate migration with clean runs for:
+  - `bun run build`
+  - `bun run typecheck`
+  - `bun run lint`
+  - `bun run format:check`
+  - `bun run test`
+  - `bun run check`
+
+Migration acceptance criteria:
+
+- Turbo orchestrates dependency-aware execution for build and non-build quality tasks.
+- Package script/task naming is consistent across workspaces.
+- Root aggregate gate behavior remains fail-closed and CI-parity aligned.
+- Migration details are captured in this spec in the same PR as behavior changes.
 
 #### Typecheck stability contract
 
@@ -287,6 +328,7 @@ Phase 3 implementation is valid when all commands below pass:
 - `bun run test`
 - `bun run build`
 - `bun run validate:metadata`
+- `bun run validate:package`
 - `bun run check`
 
 #### Exit criteria to mark Phase 3 complete
