@@ -138,6 +138,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
 
 - Bun + tsdown workflow remains primary.
 - Validation focuses on manifest correctness and built artifact alignment.
+- Standard package validation is delegated to publint + ATTW.
 - Full tarball/install matrix validation is deferred to later hardening phases.
 
 #### Implementation requirements
@@ -149,6 +150,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
 3. Ensure all metadata paths point to built artifacts under `dist/`.
 4. Add a root metadata validator command (`validate:metadata`).
 5. Fail Phase 2 checks on any metadata contract mismatch.
+6. Enforce package validation through `validate:package` (publint + ATTW).
 
 #### Required manifest contract
 
@@ -187,20 +189,29 @@ Output requirements:
 - include missing key or broken path in each error
 - exit `0` only when all active package contracts pass
 
+#### Validation tool ownership
+
+- `validate:metadata`: SeekJS smoke-policy checks (active package set and repo-specific policy)
+- `validate:publint`: packaging contract and compatibility checks
+- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`)
+- `validate:package`: aggregate package validation (`publint` + ATTW)
+
 #### Required execution path (current stage)
 
 1. `bun run build`
 2. `bun run validate:metadata`
+3. `bun run validate:package`
 
 Optional local combined check:
 
-- `bun run build && bun run validate:metadata`
+- `bun run build && bun run validate:metadata && bun run validate:package`
 
 #### Exit criteria to mark Phase 2 complete
 
 - active package set and publish intent are explicitly documented
 - all active publish-intended package manifests satisfy required contract fields
 - `validate:metadata` passes from a clean build
+- `validate:package` passes from a clean build
 - no public metadata path references unresolved or source-only files
 - CLI metadata contract passes (`bin` target + shebang)
 
