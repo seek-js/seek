@@ -10,6 +10,10 @@
   ],
   "scripts": {
     "build": "tsdown -c tsdown.config.mts src/cli.ts --format esm --dts --out-dir dist",
+    "typecheck": "tsc -b --pretty false --noEmit",
+    "lint": "biome lint .",
+    "format:check": "biome format .",
+    "test": "echo \"skip: package test not implemented\"",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write"
   }

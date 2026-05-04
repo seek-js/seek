@@ -13,6 +13,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown -c tsdown.config.mts src/index.ts --format esm --dts --out-dir dist"
+    "build": "tsdown -c tsdown.config.mts src/index.ts --format esm --dts --out-dir dist",
+    "typecheck": "tsc -b --pretty false --noEmit",
+    "lint": "biome lint .",
+    "format:check": "biome format .",
+    "test": "echo \"skip: package test not implemented\""
   }
 }
