@@ -1,6 +1,11 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "tasks": {
+    "//#lint": {},
+    "//#format:check": {},
+    "//#format:fix": {
+      "cache": false
+    },
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "outputs": ["**/tsconfig.tsbuildinfo"]

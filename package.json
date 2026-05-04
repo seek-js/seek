@@ -11,16 +11,16 @@
     "precommit:check": "lint-staged",
     "build": "bunx turbo run build",
     "typecheck": "bunx turbo run typecheck",
-    "test": "bunx turbo run test --filter=@seek/gate",
-    "lint": "bunx turbo run lint --filter=@seek/gate",
-    "format:check": "bunx turbo run format:check --filter=@seek/gate",
+    "test": "bunx turbo run test",
+    "lint": "biome lint .",
+    "format:check": "biome format .",
     "format:fix": "biome format . --write",
     "validate:metadata": "bun ./scripts/validate-metadata.mjs",
     "validate:publint": "bunx publint packages/extractor && bunx publint packages/cli",
     "validate:attw": "bunx attw --pack packages/extractor --profile esm-only",
     "validate:package": "bun run validate:publint && bun run validate:attw",
     "check:metadata": "bun run build && bun run validate:metadata",
-    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test && bun run build && bun run validate:metadata && bun run validate:package"
+    "check": "bun run typecheck && bunx turbo run lint && bunx turbo run format:check && bun run test && bun run build && bun run validate:metadata && bun run validate:package"
   },
   "lint-staged": {
     "*.{js,mjs,cjs,ts,tsx,jsx,json,md,yml,yaml}": [
