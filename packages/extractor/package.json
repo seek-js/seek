@@ -17,6 +17,7 @@
     "typecheck": "tsc -b --pretty false --noEmit",
     "lint": "biome lint .",
     "format:check": "biome format .",
+    "format:fix": "biome format . --write",
     "test": "echo \"skip: package test not implemented\""
   }
 }

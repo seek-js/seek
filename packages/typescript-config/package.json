@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": "true",
   "scripts": {
-    "build": "echo \"skip: no build for config package\"",
-    "typecheck": "echo \"skip: no typecheck for config package\"",
-    "lint": "echo \"skip: no lint for config package\"",
-    "format:check": "echo \"skip: no format check for config package\"",
-    "test": "echo \"skip: no test for config package\""
+    "build": "echo \"skip: typescript-config\"",
+    "typecheck": "echo \"skip: typescript-config\"",
+    "lint": "echo \"skip: typescript-config\"",
+    "format:check": "echo \"skip: typescript-config\"",
+    "format:fix": "echo \"skip: typescript-config\"",
+    "test": "echo \"skip: typescript-config\""
   }
 }
