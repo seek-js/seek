@@ -226,7 +226,7 @@ Optional local combined check:
 
 ### Phase 3: Quality Gates
 
-**Status:** **Complete** for Turbo-backed quality gates (local + CI via **`bun run check`**). Implementation details, operating model, and follow-ups are recorded in **`specs/turbo-spec.md`**; this is separate from **Phase 4: Runtime and Artifact Validation** below.
+**Status:** In progress
 
 #### Objective
 
@@ -248,41 +248,22 @@ Aggregate root gate:
 
 - `check` must execute the full required gate contract.
 
-#### Turbo orchestration contract (as implemented)
+#### Turbo orchestration contract
 
-- **`build`**, **`typecheck`**, **`test`:** root scripts use **`bunx turbo run <task>`**; `turbo.json` defines **`dependsOn`** for **`^build`** / **`^typecheck`** and outputs for **`dist/**`** and **`tsbuildinfo`** where applicable.
-- **`lint`** / **`format:check`:** **`bun run check`** uses **`bunx turbo run lint`** and **`bunx turbo run format:check`**. Turborepo **Root Tasks** (**`//#lint`**, **`//#format:check`**) run **one** repo-root Biome pass; workspace packages use **stub** `lint` / `format:check` scripts so the graph stays uniform without duplicate Biome (see [Turborepo Biome guide](https://turbo.build/repo/docs/guides/tools/biome)).
-- **`bun run lint`** / **`bun run format:check`** remain **direct** root Biome for ad-hoc runs; they are not required to match Turbo cache behavior.
-- **`format:fix`:** root-direct Biome; **`//#format:fix`** with **`cache: false`** supports **`turbo run format:fix`** when needed.
-- **Tests:** **`bun test`** is driven from each package’s **`test`** script under **`bunx turbo run test`**; suites live under **`packages/<name>/tests/`** where applicable.
-- **Validators** (`validate:metadata`, `validate:package`): **root-direct** in this phase (not Turbo tasks).
+- Canonical Turbo behavior is maintained in **`specs/turbo-spec.md`**.
+- This toolchain section keeps phase/status framing and acceptance criteria for broader roadmap tracking.
+- Runtime/artifact validation in this file’s Phase 4 remains a separate workstream.
 
 #### Turbo migration plan (target-state contract)
 
-Target state (aligned with implementation):
-
-- Root **`build`**, **`typecheck`**, **`lint`**, **`format:check`**, **`test`** participate in Turbo for the aggregate gate; **`lint`/`format:check`** use Root Tasks + stubbed workspace scripts as above.
-- `turbo.json` includes **`//#lint`**, **`//#format:check`**, **`//#format:fix`**, plus workspace task metadata for **`lint`**, **`format:check`**, **`test`**, **`build`**, **`typecheck`**.
-- Dependency-aware ordering: **`build`** and **`typecheck`** use **`^`** dependencies as defined in `turbo.json`.
-- Cache: artifact tasks declare **`outputs`**; **`test`** uses **`cache: false`**; **`//#format:fix`** is uncached.
-
-Staged rollout (completed through Phase 3 on the migration branch):
-
-1. Standardize package-level script **keys** across workspaces (real commands or stubs).
-2. Define tasks in `turbo.json` including **Root Tasks** for Biome.
-3. Switch root **`check`** internals to **`bunx turbo run`** for orchestrated quality tasks; keep validators root-direct.
-4. Keep **`bun run check`** as the aggregate entrypoint for local + CI.
-
-Validation:
-
-- `bun run build`, `typecheck`, `test`, `check` (and optional direct `lint` / `format:check`) per **`specs/turbo-spec.md`** verification matrix.
+Target-state details and operational runbook are documented in **`specs/turbo-spec.md`**.
 
 Migration acceptance criteria:
 
 - Turbo orchestrates **`build`**, **`typecheck`**, **`test`**, and **root Biome** via Root Tasks for **`lint`/`format:check`**.
 - Package script **names** stay consistent; **lint/format** bodies are stubs except at repo root command for **`//`**.
 - Root aggregate gate stays fail-closed and CI-parity aligned through **`bun run check`**.
-- Details and closure recorded in **`specs/turbo-spec.md`**.
+- Details and current implementation notes are recorded in **`specs/turbo-spec.md`**.
 
 #### Typecheck stability contract
 
@@ -328,7 +309,7 @@ Phase 3 implementation is valid when all commands below pass:
 - Turbo pipeline covers **`build`**, **`typecheck`**, **`test`**, and **Root Tasks** for **`lint`** / **`format:check`** (plus optional **`//#format:fix`**)
 - typecheck gate is stable (no structural config failures)
 - pre-commit checks are active and fast
-- **`specs/turbo-spec.md`** reflects implemented Turbo contract and operating guidance for this repo
+- **`specs/turbo-spec.md`** reflects current Turbo contract and operating guidance for this repo
 
 ### Phase 4: Runtime and Artifact Validation
 

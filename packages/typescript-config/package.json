@@ -1,7 +1,7 @@
 {
   "name": "@seek/typescript-config",
   "version": "0.0.0",
-  "private": "true",
+  "private": true,
   "scripts": {
     "build": "echo \"skip: typescript-config\"",
     "typecheck": "echo \"skip: typescript-config\"",

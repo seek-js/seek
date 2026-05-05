@@ -1,6 +1,5 @@
 # Turbo Spec (Seek.js)
 
-**Status:** Implemented and active on `feat/turbo-migration-foundation`.  
 **Purpose:** Single source of truth for how Turborepo runs quality gates in this repo, why setup exists, how to run it day-to-day, and what to improve later.
 
 ## 1) What Turbo owns in this repo
@@ -45,6 +44,12 @@ Workspace tasks:
 - `lint`: `cache: true`
 - `format:check`: `cache: true`
 - `test`: `cache: false`
+
+Workspace exception:
+
+- `@seek/typescript-config` uses `packages/typescript-config/turbo.json` overrides.
+- For that workspace: `build`/`typecheck` outputs are empty and cache is disabled; `lint`/`format:check` cache disabled.
+- Reason: config-only package with stub task scripts; avoid misleading cache artifacts.
 
 Implications:
 
