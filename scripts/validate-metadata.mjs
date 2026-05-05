@@ -19,7 +19,7 @@ export const ACTIVE_PACKAGES = [
   },
 ];
 
-export function getValueByPath(source, keyPath) {
+function getValueByPath(source, keyPath) {
   return keyPath.reduce((value, key) => (value == null ? undefined : value[key]), source);
 }
 
