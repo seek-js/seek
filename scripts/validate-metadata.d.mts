@@ -17,10 +17,7 @@ export const ACTIVE_PACKAGES: readonly ActivePackageConfig[];
 
 export function getValueByPath(source: unknown, keyPath: readonly string[]): unknown;
 
-export function validatePackage(
-  pkgConfig: ActivePackageConfig,
-  options?: ValidationOptions,
-): Promise<string[]>;
+export function validatePackage(pkgConfig: ActivePackageConfig, options?: ValidationOptions): Promise<string[]>;
 
 export function collectValidationErrors(options?: ValidationOptions): Promise<string[]>;
 export function main(): Promise<void>;
