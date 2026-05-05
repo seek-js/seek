@@ -250,49 +250,20 @@ Aggregate root gate:
 
 #### Turbo orchestration contract
 
-Turbo configuration is retained in-repo for staged migration, while current execution remains Bun workspace-driven.
-
-- `build` remains executed via root Bun workspace command in this stage.
-- `build` task metadata in `turbo.json` is retained for migration continuity.
-- Non-build quality tasks (`typecheck`, `lint`, `test`, `format:check`) remain root-level checks in this stage.
-- Full Turbo task parity for non-build checks is intentionally deferred until package script surfaces are standardized across workspaces.
-- Gate semantics remain defined by this spec regardless of whether execution is Turbo-backed or root-direct.
+- Canonical Turbo behavior is maintained in **`specs/turbo-spec.md`**.
+- This toolchain section keeps phase/status framing and acceptance criteria for broader roadmap tracking.
+- Runtime/artifact validation in this file’s Phase 4 remains a separate workstream.
 
 #### Turbo migration plan (target-state contract)
 
-This section defines the intended migration path and end-state for Turbo so implementation can be resumed later without re-deciding core contracts.
-
-Target state:
-
-- Root `build` is executed through Turbo (`turbo run build`) as the default path.
-- Workspace quality tasks (`build`, `typecheck`, `lint`, `test`, `format:check`) are defined in `turbo.json` and mapped to package scripts.
-- Dependency-aware ordering is enforced where required:
-  - `build` uses `dependsOn: ["^build"]`
-  - `typecheck` uses `dependsOn: ["^typecheck"]` once package scripts exist
-- Cache behavior is explicit:
-  - deterministic artifact tasks declare `outputs`
-  - side-effect/volatile tasks (for example broad tests) may set `cache: false`
-
-Staged rollout requirements:
-
-1. Standardize package-level scripts across active workspace packages for `lint`, `format:check`, `typecheck`, and `test`.
-2. Add matching task definitions in `turbo.json` with dependency/caching metadata.
-3. Switch root scripts from direct execution to Turbo-backed execution (`turbo run <task>`), beginning with `build`.
-4. Preserve local/CI parity by keeping `bun run check` as the aggregate entrypoint while changing internals.
-5. Validate migration with clean runs for:
-  - `bun run build`
-  - `bun run typecheck`
-  - `bun run lint`
-  - `bun run format:check`
-  - `bun run test`
-  - `bun run check`
+Target-state details and operational runbook are documented in **`specs/turbo-spec.md`**.
 
 Migration acceptance criteria:
 
-- Turbo orchestrates dependency-aware execution for build and non-build quality tasks.
-- Package script/task naming is consistent across workspaces.
-- Root aggregate gate behavior remains fail-closed and CI-parity aligned.
-- Migration details are captured in this spec in the same PR as behavior changes.
+- Turbo orchestrates **`build`**, **`typecheck`**, **`test`**, and **root Biome** via Root Tasks for **`lint`/`format:check`**.
+- Package script **names** stay consistent; **lint/format** bodies are stubs except at repo root command for **`//`**.
+- Root aggregate gate stays fail-closed and CI-parity aligned through **`bun run check`**.
+- Details and current implementation notes are recorded in **`specs/turbo-spec.md`**.
 
 #### Typecheck stability contract
 
@@ -335,11 +306,14 @@ Phase 3 implementation is valid when all commands below pass:
 
 - local and CI gate behavior are parity-aligned through `check`
 - Biome config and scripts are valid for installed version
-- Turbo pipeline is correctly configured for current-stage build orchestration
+- Turbo pipeline covers **`build`**, **`typecheck`**, **`test`**, and **Root Tasks** for **`lint`** / **`format:check`** (plus optional **`//#format:fix`**)
 - typecheck gate is stable (no structural config failures)
 - pre-commit checks are active and fast
+- **`specs/turbo-spec.md`** reflects current Turbo contract and operating guidance for this repo
 
 ### Phase 4: Runtime and Artifact Validation
+
+**Note:** This roadmap phase is **runtime and artifact** validation only. It is separate from repo Turbo orchestration documented in **`specs/turbo-spec.md`**.
 
 **Status:** Not complete
 
