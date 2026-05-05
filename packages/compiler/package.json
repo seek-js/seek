@@ -1,6 +1,7 @@
 {
   "name": "@seekjs/compiler",
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "build": "tsdown -c tsdown.config.mts src/index.ts --format esm --dts --out-dir dist",

@@ -346,6 +346,7 @@ Phase 3 implementation is valid when all commands below pass:
 - Integrate publish checks with Turbo orchestration where helpful (for example, filtered publish-check tasks).
 - Keep root scripts as orchestration entrypoints; move package-specific publish validation/test ownership into package folders where practical.
 - If metadata validation ownership is moved from root script to package-level tasks, maintain one fail-closed root aggregate command for CI.
+- Keep publish intent machine-readable: internal/non-publish packages should use `private: true`, and metadata policy should evaluate manifest intent rather than hardcoded package lists.
 
 ## Change Management
 
