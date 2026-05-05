@@ -20,6 +20,7 @@ Validators currently stay root-direct:
 
 - `validate:metadata` -> `bun ./scripts/validate-metadata.mjs`
 - `validate:package` -> `publint` + `attw`
+- Publish lifecycle hooks (`prepublishOnly`) are intentionally not part of current Turbo quality gate.
 
 ## 2) Why this design
 
@@ -28,6 +29,7 @@ Validators currently stay root-direct:
 - Keep Biome execution central: one root run via Turbo Root Tasks, avoid repeated workspace Biome runs.
 - Keep package script surface uniform (`build`, `typecheck`, `lint`, `format:check`, `test`) so Turbo graph never breaks on missing keys.
 - Keep publish validators root-direct for now; simpler correctness model while migration stabilizes.
+- Defer publish-lifecycle/Turbo publish orchestration decisions to Phase 5 release work.
 
 ## 3) Turbo graph contract (`turbo.json`)
 
@@ -115,24 +117,31 @@ Turbo-specific cross-check:
 
 - `bunx turbo run build typecheck lint format:check test --summarize`
 
-## 7) Metadata validator future plan (Turbo integration idea)
+## 7) Metadata validator and publish-hook roadmap
 
 Current state:
 
 - `validate:metadata` and `validate:package` are root-direct and included in `check`.
 
-Future organized Turbo path:
+Near-term decision (current contract):
+
+- Keep `validate:metadata` + `validate:package` root-direct and in `check`.
+- Do not wire package `prepublishOnly` yet.
+- Land publish lifecycle orchestration in Phase 5 together with Changesets/release hardening.
+
+Phase 5 implementation options:
 
 Option A (minimal):
 
-- Add root tasks `//#validate:metadata` and `//#validate:package` in `turbo.json`.
-- Keep commands root-owned, move orchestration into Turbo.
+- Add root tasks `//#validate:metadata`, `//#validate:package`, and publish-check tasks in `turbo.json`.
+- Keep root orchestration commands, run filtered package checks through Turbo.
 
 Option B (better long-term):
 
 - Move validation ownership to packages (each package validates own publish surface).
-- Add task-level `dependsOn` on `build`.
+- Add task-level `dependsOn` on `build`, then execute via package `prepublishOnly`/publish-check scripts.
 - Define clear `inputs` for package metadata + output artifacts.
+- Keep one root fail-closed publish gate command for CI.
 
 Guardrails before enabling cache for validators:
 

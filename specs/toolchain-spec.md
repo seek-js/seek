@@ -140,6 +140,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
 - Validation focuses on manifest correctness and built artifact alignment.
 - Standard package validation is delegated to publint + ATTW.
 - Full tarball/install matrix validation is deferred to later hardening phases.
+- Publish lifecycle orchestration (`prepublishOnly`, Changesets publish wiring) is deferred to Phase 5.
 
 #### Implementation requirements
 
@@ -174,6 +175,12 @@ For non-publish/internal packages:
 #### `validate:metadata` contract
 
 `validate:metadata` must run as a deterministic script and produce non-zero exit on failure.
+
+Implementation decision for current phase:
+
+- keep `validate:metadata` as a root-owned script entrypoint
+- do not migrate metadata validation to package-level publish hooks in Phase 2/3
+- revisit ownership/location in Phase 5 when release pipeline work lands
 
 Checks performed:
 
@@ -326,6 +333,13 @@ Phase 3 implementation is valid when all commands below pass:
 
 - release contract direction is defined
 - remaining work: complete CI release automation with changeset-driven versioning and evidence-gated publish
+
+#### Phase 5 scope additions (decision record)
+
+- Add publish-time lifecycle enforcement for publish-intended packages (`prepublishOnly`).
+- Integrate publish checks with Turbo orchestration where helpful (for example, filtered publish-check tasks).
+- Keep root scripts as orchestration entrypoints; move package-specific publish validation/test ownership into package folders where practical.
+- If metadata validation ownership is moved from root script to package-level tasks, maintain one fail-closed root aggregate command for CI.
 
 ## Change Management
 
