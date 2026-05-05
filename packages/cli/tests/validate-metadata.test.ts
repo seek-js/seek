@@ -31,6 +31,28 @@ const cliConfig = {
 } as const;
 
 describe('validatePackage (cli)', () => {
+  test('passes for valid cli metadata and executable bin target', async () => {
+    const rootDir = await createTempWorkspace();
+    const packageDir = path.join(rootDir, 'packages/cli');
+    const distDir = path.join(packageDir, 'dist');
+
+    await mkdir(distDir, { recursive: true });
+    await writeFile(path.join(distDir, 'cli.js'), "#!/usr/bin/env node\nconsole.log('cli');\n");
+    await writePackageJson(packageDir, {
+      name: '@seekjs/cli',
+      version: '0.0.0',
+      type: 'module',
+      bin: {
+        seek: './dist/cli.js',
+      },
+      files: ['dist'],
+    });
+
+    const errors = await validatePackage(cliConfig, { rootDir });
+
+    expect(errors).toEqual([]);
+  });
+
   test('fails when cli bin target missing shebang', async () => {
     const rootDir = await createTempWorkspace();
     const packageDir = path.join(rootDir, 'packages/cli');
