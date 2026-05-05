@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { validatePackage } from '../scripts/validate-metadata.mjs';
+import { validatePackage } from '../../../scripts/validate-metadata.mjs';
 
 const tmpDirs: string[] = [];
 
@@ -30,14 +30,7 @@ const extractorConfig = {
   requiredKeys: ['name', 'version', 'type', 'exports', 'types', 'files'],
 } as const;
 
-const cliConfig = {
-  name: '@seekjs/cli',
-  role: 'cli',
-  dir: 'packages/cli',
-  requiredKeys: ['name', 'version', 'type', 'bin', 'files'],
-} as const;
-
-describe('validatePackage', () => {
+describe('validatePackage (extractor)', () => {
   test('passes for valid library metadata', async () => {
     const rootDir = await createTempWorkspace();
     const packageDir = path.join(rootDir, 'packages/extractor');
@@ -101,28 +94,6 @@ describe('validatePackage', () => {
     expect(errors).toContain('files must include "dist" for active publish package');
   });
 
-  test('fails when cli bin target missing shebang', async () => {
-    const rootDir = await createTempWorkspace();
-    const packageDir = path.join(rootDir, 'packages/cli');
-    const distDir = path.join(packageDir, 'dist');
-
-    await mkdir(distDir, { recursive: true });
-    await writeFile(path.join(distDir, 'cli.js'), "console.log('cli');\n");
-    await writePackageJson(packageDir, {
-      name: '@seekjs/cli',
-      version: '0.0.0',
-      type: 'module',
-      bin: {
-        seek: './dist/cli.js',
-      },
-      files: ['dist'],
-    });
-
-    const errors = await validatePackage(cliConfig, { rootDir });
-
-    expect(errors).toContain('bin.seek target missing shebang (./dist/cli.js)');
-  });
-
   test('fails when package.json is missing', async () => {
     const rootDir = await createTempWorkspace();
 
@@ -142,24 +113,5 @@ describe('validatePackage', () => {
 
     expect(errors).toHaveLength(1);
     expect(errors[0]).toContain('unable to read or parse package.json at');
-  });
-
-  test('fails when cli bin target is missing', async () => {
-    const rootDir = await createTempWorkspace();
-    const packageDir = path.join(rootDir, 'packages/cli');
-
-    await writePackageJson(packageDir, {
-      name: '@seekjs/cli',
-      version: '0.0.0',
-      type: 'module',
-      bin: {
-        seek: './dist/cli.js',
-      },
-      files: ['dist'],
-    });
-
-    const errors = await validatePackage(cliConfig, { rootDir });
-
-    expect(errors).toContain('bin.seek target not found (./dist/cli.js)');
   });
 });

@@ -46,6 +46,7 @@ flowchart LR
 
 ## Repo Map
 
+- Contributing quality gate: install deps, then **`bun run check`** — aggregate script that runs Turbo-backed build/typecheck/test/Biome orchestration and root validators (see **`specs/turbo-spec.md`**).
 - `[docs/README.md](docs/README.md)`: user-facing docs boundary and guide index.
 - `[specs/README.md](specs/README.md)`: implementation contracts.
 - `[specs/extractor/README.md](specs/extractor/README.md)`: extractor spec entrypoint.

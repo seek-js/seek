@@ -140,6 +140,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
 - Validation focuses on manifest correctness and built artifact alignment.
 - Standard package validation is delegated to publint + ATTW.
 - Full tarball/install matrix validation is deferred to later hardening phases.
+- Publish lifecycle orchestration (`prepublishOnly`, Changesets publish wiring) is deferred to Phase 5.
 
 #### Implementation requirements
 
@@ -147,7 +148,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
   - package role: `library`, `cli`, or `internal`
   - publish intent: `yes` or `no`
 2. Standardize required manifest fields for active publish-intended packages.
-3. Ensure all metadata paths point to built artifacts under `dist/`.
+3. Ensure metadata contract fields are present for active publish-intended packages; deep path/entrypoint resolution semantics are enforced via `validate:package` (publint + ATTW).
 4. Add a root metadata validator command (`validate:metadata`).
 5. Fail Phase 2 checks on any metadata contract mismatch.
 6. Enforce package validation through `validate:package` (publint + ATTW).
@@ -157,8 +158,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
 For active publish-intended library packages:
 
 - required keys: `name`, `version`, `type`, `exports`, `types`, `files`
-- `exports`/`types` paths must resolve to built files
-- runtime entries must not point to `src/`
+- `exports`/`types` path and resolver semantics are enforced through `validate:package` tooling
 
 For active publish-intended CLI packages:
 
@@ -174,6 +174,12 @@ For non-publish/internal packages:
 #### `validate:metadata` contract
 
 `validate:metadata` must run as a deterministic script and produce non-zero exit on failure.
+
+Implementation decision for current phase:
+
+- keep `validate:metadata` as a root-owned script entrypoint
+- do not migrate metadata validation to package-level publish hooks in Phase 2/3
+- revisit ownership/location in Phase 5 when release pipeline work lands
 
 Checks performed:
 
@@ -194,10 +200,17 @@ Output requirements:
 
 - `validate:metadata`: SeekJS smoke-policy checks (active package set and repo-specific policy)
 - `validate:publint`: packaging contract and compatibility checks
-- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`)
+- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`) for importable library packages only (currently `@seekjs/extractor`, not bin-first CLI packages)
 - `validate:package`: aggregate package validation (`publint` + ATTW)
 
 Deep path resolution semantics (runtime/source path shape, boundary guarantees, resolver compatibility) are enforced through `validate:package` tooling, not duplicated in `validate:metadata`.
+
+Rationale and references:
+
+- ATTW primarily validates TypeScript resolution behavior for package entrypoints and declaration surfaces across resolver modes; this is most applicable to importable library exports.
+- Bin-first CLI packages are validated through metadata + artifact checks (`bin` target and shebang) and general packaging checks via publint.
+- ATTW docs: [@arethetypeswrong/cli](https://www.npmjs.com/package/@arethetypeswrong/cli)
+- publint comparison guidance: [Comparisons | publint](https://publint.dev/docs/comparisons)
 
 #### Required execution path (current stage)
 
@@ -215,7 +228,7 @@ Optional local combined check:
 - all active publish-intended package manifests satisfy required contract fields
 - `validate:metadata` passes from a clean build
 - `validate:package` passes from a clean build
-- no public metadata path references unresolved or source-only files
+- publish-surface path and type-resolution checks pass through publint/ATTW for covered packages
 - CLI metadata contract passes (`bin` target + shebang)
 
 #### Deferred to later phases
@@ -223,6 +236,12 @@ Optional local combined check:
 - tarball payload validation (`npm pack --dry-run` / packed file audits)
 - clean-environment install/import smoke across package managers
 - runtime compatibility matrix execution across Node/Bun/Deno
+- metadata-validator test-helper deduplication is deferred until test surface grows (keep local duplication for now to avoid early abstraction)
+- future option: extract shared metadata test fixtures into a small shared helper module (for example under `scripts/test-utils/`)
+- references:
+  - [changesets/scripts/test-utils](https://github.com/changesets/changesets/tree/main/scripts/test-utils)
+  - [Turborepo discussion: test structure in monorepos](https://github.com/vercel/turborepo/discussions/2320)
+  - [Vercel Academy: configure Turborepo tests](https://vercel.com/academy/production-monorepos/configure-turborepo-tests)
 
 ### Phase 3: Quality Gates
 
@@ -250,49 +269,20 @@ Aggregate root gate:
 
 #### Turbo orchestration contract
 
-Turbo configuration is retained in-repo for staged migration, while current execution remains Bun workspace-driven.
-
-- `build` remains executed via root Bun workspace command in this stage.
-- `build` task metadata in `turbo.json` is retained for migration continuity.
-- Non-build quality tasks (`typecheck`, `lint`, `test`, `format:check`) remain root-level checks in this stage.
-- Full Turbo task parity for non-build checks is intentionally deferred until package script surfaces are standardized across workspaces.
-- Gate semantics remain defined by this spec regardless of whether execution is Turbo-backed or root-direct.
+- Canonical Turbo behavior is maintained in **`specs/turbo-spec.md`**.
+- This toolchain section keeps phase/status framing and acceptance criteria for broader roadmap tracking.
+- Runtime/artifact validation in this file’s Phase 4 remains a separate workstream.
 
 #### Turbo migration plan (target-state contract)
 
-This section defines the intended migration path and end-state for Turbo so implementation can be resumed later without re-deciding core contracts.
-
-Target state:
-
-- Root `build` is executed through Turbo (`turbo run build`) as the default path.
-- Workspace quality tasks (`build`, `typecheck`, `lint`, `test`, `format:check`) are defined in `turbo.json` and mapped to package scripts.
-- Dependency-aware ordering is enforced where required:
-  - `build` uses `dependsOn: ["^build"]`
-  - `typecheck` uses `dependsOn: ["^typecheck"]` once package scripts exist
-- Cache behavior is explicit:
-  - deterministic artifact tasks declare `outputs`
-  - side-effect/volatile tasks (for example broad tests) may set `cache: false`
-
-Staged rollout requirements:
-
-1. Standardize package-level scripts across active workspace packages for `lint`, `format:check`, `typecheck`, and `test`.
-2. Add matching task definitions in `turbo.json` with dependency/caching metadata.
-3. Switch root scripts from direct execution to Turbo-backed execution (`turbo run <task>`), beginning with `build`.
-4. Preserve local/CI parity by keeping `bun run check` as the aggregate entrypoint while changing internals.
-5. Validate migration with clean runs for:
-  - `bun run build`
-  - `bun run typecheck`
-  - `bun run lint`
-  - `bun run format:check`
-  - `bun run test`
-  - `bun run check`
+Target-state details and operational runbook are documented in **`specs/turbo-spec.md`**.
 
 Migration acceptance criteria:
 
-- Turbo orchestrates dependency-aware execution for build and non-build quality tasks.
-- Package script/task naming is consistent across workspaces.
-- Root aggregate gate behavior remains fail-closed and CI-parity aligned.
-- Migration details are captured in this spec in the same PR as behavior changes.
+- Turbo orchestrates **`build`**, **`typecheck`**, **`test`**, and **root Biome** via Root Tasks for **`lint`/`format:check`**.
+- Package script **names** stay consistent; **lint/format** bodies are stubs except at repo root command for **`//`**.
+- Root aggregate gate stays fail-closed and CI-parity aligned through **`bun run check`**.
+- Details and current implementation notes are recorded in **`specs/turbo-spec.md`**.
 
 #### Typecheck stability contract
 
@@ -335,11 +325,14 @@ Phase 3 implementation is valid when all commands below pass:
 
 - local and CI gate behavior are parity-aligned through `check`
 - Biome config and scripts are valid for installed version
-- Turbo pipeline is correctly configured for current-stage build orchestration
+- Turbo pipeline covers **`build`**, **`typecheck`**, **`test`**, and **Root Tasks** for **`lint`** / **`format:check`** (plus optional **`//#format:fix`**)
 - typecheck gate is stable (no structural config failures)
 - pre-commit checks are active and fast
+- **`specs/turbo-spec.md`** reflects current Turbo contract and operating guidance for this repo
 
 ### Phase 4: Runtime and Artifact Validation
+
+**Note:** This roadmap phase is **runtime and artifact** validation only. It is separate from repo Turbo orchestration documented in **`specs/turbo-spec.md`**.
 
 **Status:** Not complete
 
@@ -352,6 +345,19 @@ Phase 3 implementation is valid when all commands below pass:
 
 - release contract direction is defined
 - remaining work: complete CI release automation with changeset-driven versioning and evidence-gated publish
+
+#### Phase 5 scope additions (decision record)
+
+- Add publish-time lifecycle enforcement for publish-intended packages (`prepublishOnly`).
+- Integrate publish checks with Turbo orchestration where helpful (for example, filtered publish-check tasks).
+- Keep root scripts as orchestration entrypoints; move package-specific publish validation/test ownership into package folders where practical.
+- If metadata validation ownership is moved from root script to package-level tasks, maintain one fail-closed root aggregate command for CI.
+- Keep publish intent machine-readable: internal/non-publish packages should use `private: true`, and metadata policy should evaluate manifest intent rather than hardcoded package lists.
+- Keep duplicated metadata-test fixture helpers for now; revisit shared test-utils extraction only when additional validator test coverage increases maintenance cost.
+- Reference patterns for future extraction:
+  - Changesets shared test-utils module: [changesets/scripts/test-utils](https://github.com/changesets/changesets/tree/main/scripts/test-utils)
+  - Turborepo test-structure discussion: [vercel/turborepo discussion #2320](https://github.com/vercel/turborepo/discussions/2320)
+  - Turborepo test task guidance: [Configure Turborepo for Tests](https://vercel.com/academy/production-monorepos/configure-turborepo-tests)
 
 ## Change Management
 
