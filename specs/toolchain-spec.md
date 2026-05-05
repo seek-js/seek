@@ -236,6 +236,12 @@ Optional local combined check:
 - tarball payload validation (`npm pack --dry-run` / packed file audits)
 - clean-environment install/import smoke across package managers
 - runtime compatibility matrix execution across Node/Bun/Deno
+- metadata-validator test-helper deduplication is deferred until test surface grows (keep local duplication for now to avoid early abstraction)
+- future option: extract shared metadata test fixtures into a small shared helper module (for example under `scripts/test-utils/`)
+- references:
+  - [changesets/scripts/test-utils](https://github.com/changesets/changesets/tree/main/scripts/test-utils)
+  - [Turborepo discussion: test structure in monorepos](https://github.com/vercel/turborepo/discussions/2320)
+  - [Vercel Academy: configure Turborepo tests](https://vercel.com/academy/production-monorepos/configure-turborepo-tests)
 
 ### Phase 3: Quality Gates
 
@@ -347,6 +353,11 @@ Phase 3 implementation is valid when all commands below pass:
 - Keep root scripts as orchestration entrypoints; move package-specific publish validation/test ownership into package folders where practical.
 - If metadata validation ownership is moved from root script to package-level tasks, maintain one fail-closed root aggregate command for CI.
 - Keep publish intent machine-readable: internal/non-publish packages should use `private: true`, and metadata policy should evaluate manifest intent rather than hardcoded package lists.
+- Keep duplicated metadata-test fixture helpers for now; revisit shared test-utils extraction only when additional validator test coverage increases maintenance cost.
+- Reference patterns for future extraction:
+  - Changesets shared test-utils module: [changesets/scripts/test-utils](https://github.com/changesets/changesets/tree/main/scripts/test-utils)
+  - Turborepo test-structure discussion: [vercel/turborepo discussion #2320](https://github.com/vercel/turborepo/discussions/2320)
+  - Turborepo test task guidance: [Configure Turborepo for Tests](https://vercel.com/academy/production-monorepos/configure-turborepo-tests)
 
 ## Change Management
 
