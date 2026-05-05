@@ -148,7 +148,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
   - package role: `library`, `cli`, or `internal`
   - publish intent: `yes` or `no`
 2. Standardize required manifest fields for active publish-intended packages.
-3. Ensure all metadata paths point to built artifacts under `dist/`.
+3. Ensure metadata contract fields are present for active publish-intended packages; deep path/entrypoint resolution semantics are enforced via `validate:package` (publint + ATTW).
 4. Add a root metadata validator command (`validate:metadata`).
 5. Fail Phase 2 checks on any metadata contract mismatch.
 6. Enforce package validation through `validate:package` (publint + ATTW).
@@ -158,8 +158,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
 For active publish-intended library packages:
 
 - required keys: `name`, `version`, `type`, `exports`, `types`, `files`
-- `exports`/`types` paths must resolve to built files
-- runtime entries must not point to `src/`
+- `exports`/`types` path and resolver semantics are enforced through `validate:package` tooling
 
 For active publish-intended CLI packages:
 
@@ -229,7 +228,7 @@ Optional local combined check:
 - all active publish-intended package manifests satisfy required contract fields
 - `validate:metadata` passes from a clean build
 - `validate:package` passes from a clean build
-- no public metadata path references unresolved or source-only files
+- publish-surface path and type-resolution checks pass through publint/ATTW for covered packages
 - CLI metadata contract passes (`bin` target + shebang)
 
 #### Deferred to later phases
