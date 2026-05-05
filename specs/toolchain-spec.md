@@ -201,10 +201,17 @@ Output requirements:
 
 - `validate:metadata`: SeekJS smoke-policy checks (active package set and repo-specific policy)
 - `validate:publint`: packaging contract and compatibility checks
-- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`)
+- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`) for importable library packages only (currently `@seekjs/extractor`, not bin-first CLI packages)
 - `validate:package`: aggregate package validation (`publint` + ATTW)
 
 Deep path resolution semantics (runtime/source path shape, boundary guarantees, resolver compatibility) are enforced through `validate:package` tooling, not duplicated in `validate:metadata`.
+
+Rationale and references:
+
+- ATTW primarily validates TypeScript resolution behavior for package entrypoints and declaration surfaces across resolver modes; this is most applicable to importable library exports.
+- Bin-first CLI packages are validated through metadata + artifact checks (`bin` target and shebang) and general packaging checks via publint.
+- ATTW docs: [@arethetypeswrong/cli](https://www.npmjs.com/package/@arethetypeswrong/cli)
+- publint comparison guidance: [Comparisons | publint](https://publint.dev/docs/comparisons)
 
 #### Required execution path (current stage)
 

@@ -19,7 +19,7 @@ Current aggregate gate:
 Validators currently stay root-direct:
 
 - `validate:metadata` -> `bun ./scripts/validate-metadata.mjs`
-- `validate:package` -> `publint` + `attw`
+- `validate:package` -> `publint` + `attw` (ATTW currently applied to library package surfaces; CLI remains covered by metadata + publint)
 - Publish lifecycle hooks (`prepublishOnly`) are intentionally not part of current Turbo quality gate.
 
 ## 2) Why this design
@@ -29,7 +29,13 @@ Validators currently stay root-direct:
 - Keep Biome execution central: one root run via Turbo Root Tasks, avoid repeated workspace Biome runs.
 - Keep package script surface uniform (`build`, `typecheck`, `lint`, `format:check`, `test`) so Turbo graph never breaks on missing keys.
 - Keep publish validators root-direct for now; simpler correctness model while migration stabilizes.
+- Keep ATTW scoped to library exports for now; this matches ATTW's type-resolution focus and avoids non-actionable failures on bin-first CLI packages.
 - Defer publish-lifecycle/Turbo publish orchestration decisions to Phase 5 release work.
+
+References:
+
+- ATTW CLI/package semantics: [@arethetypeswrong/cli](https://www.npmjs.com/package/@arethetypeswrong/cli)
+- publint vs ATTW scope: [Comparisons | publint](https://publint.dev/docs/comparisons)
 
 ## 3) Turbo graph contract (`turbo.json`)
 
