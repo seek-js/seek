@@ -15,6 +15,8 @@ Explain end-to-end process for building and publishing Seek.js packages (librari
 
 Detail policy: this document records directional decisions and workflow shape. Exact command flags stay intentionally light here and are finalized in implementation PRs.
 
+Package names below reflect the workspace as it exists today. The target layout (`cli`, `core`, `element`, `react`, `templates`) is defined in `[../specs/01-architecture.md](../specs/01-architecture.md)`; the restructure is a separate change.
+
 ## 1) Package Lifecycle
 
 1. Write source code (`src/*.ts`)
@@ -152,7 +154,7 @@ sequenceDiagram
 - keep each package focused and small
 - expose public API from `src/index.ts`
 - avoid deep cross-package internal imports
-- preserve extractor/compiler/client boundary contracts
+- preserve package boundary contracts defined in `[../specs/01-architecture.md](../specs/01-architecture.md)`
 - release frequently with small changesets
 
 ## 9) Finalized Phase-1 Stack
@@ -171,7 +173,7 @@ Add Turborepo/Nx later only when CI graph complexity justifies extra tooling.
 
 ## 10) Why `tsdown` Instead of `rollup` for Phase 1
 
-`rollup` is powerful, but Phase 1 priority is fast, low-friction package shipping while extractor/compiler contracts are still stabilizing.
+`rollup` is powerful, but Phase 1 priority is fast, low-friction package shipping while package contracts are still stabilizing.
 
 Choose `tsdown` now because:
 
