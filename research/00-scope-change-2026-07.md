@@ -71,7 +71,7 @@ query returns. A 12MB blocking download is not a search experience.
 | Index sharding for incremental hydration | ships it; stays ~300kB over the wire at 50,000 pages |
 | URL and anchor binding for citations | ships it |
 | Nav/chrome removal | ships it |
-| Zero-native-dep distribution | single self-contained binary, no Node or native deps |
+| Portable distribution | prebuilt Rust binary; no native compilation step, and npm/pip channels both available |
 | Multilingual indexing | fully automatic from `<html lang>`: 40+ languages, per-language indexes, correct stemming |
 
 The last row matters most. The old `research/plan.md` flagged i18n as an unsolved challenge

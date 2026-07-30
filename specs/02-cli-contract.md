@@ -110,16 +110,21 @@ Field rules:
 | --- | --- | --- |
 | `seekVersion` | yes | semver; major bump on breaking change |
 | `generatedAt` | yes | ISO 8601 UTC |
-| `siteUrl` | no | absolute origin; `null` when `--site-url` omitted |
+| `siteUrl` | yes, nullable | absolute origin; `null` when `--site-url` omitted |
 | `pagefindPath` | yes | root-relative path to the index bundle |
 | `pageCount` | yes | pages successfully indexed |
 | `languages` | yes | detected `<html lang>` values, sorted |
-| `answerEndpoint` | no | absolute or root-relative URL; `null` disables "Ask AI" |
+| `answerEndpoint` | yes, nullable | absolute or root-relative URL; `null` disables "Ask AI" |
 | `systemContext` | yes | short site framing passed to the model as system text |
+| `systemContext.instructions` | yes, nullable | site-specific answering guidance; `null` when unset |
 
-`systemContext.instructions` is optional free text (site-specific answering guidance). It is
-capped at 2,000 characters; longer values are truncated with a warning. It is never
-user-supplied at query time.
+**Every key in the table is always written.** Optionality is expressed as a `null` value, never
+as an absent key, so consumers can read any field unconditionally without presence checks.
+Emitting a partial object is a contract violation. Consumers must still ignore keys they do not
+recognise, so that a minor version can add fields without breaking them.
+
+`systemContext.instructions` is free text, capped at 2,000 characters; longer values are
+truncated with a warning. It is never user-supplied at query time.
 
 ## Invariants
 

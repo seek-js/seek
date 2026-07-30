@@ -30,7 +30,7 @@ The reasoning that produced this scope lives in
 ```mermaid
 flowchart TD
     build[Your build] -->|./dist folder of HTML| seek[seek build ./dist]
-    seek -->|Pagefind Node API| bundle[pagefind/ index bundle]
+    seek -->|wraps Pagefind| bundle[pagefind/ index bundle]
     seek -->|no LLM, seconds| context[seek/ context files]
     bundle --> ui[seek-search component]
     context --> endpoint[Answer endpoint<br/>user-deployed serverless fn]
@@ -52,13 +52,22 @@ Stage responsibilities:
 
 ### AD-1: Retrieval is Pagefind. Do not rebuild it.
 
-`seek build` wraps Pagefind's Node API (`createIndex`, `addDirectory`, `addHTMLFile`,
-`writeFiles`). Seek owns no index format, no ranking, no tokenizer, no stemming.
+`seek build` delegates all indexing to Pagefind. Seek owns no index format, no ranking, no
+tokenizer, no stemming.
 
 Reason: Pagefind already ships sharded index chunks (~300kB over the wire at 50,000 pages),
-URL and anchor binding, chrome removal, a single self-contained binary with no Node or native
-dependencies, and automatic multilingual indexing from `<html lang>` across 40+ languages with
-correct per-language stemming. Rebuilding any of it is negative work.
+URL and anchor binding, chrome removal, a prebuilt Rust binary that needs no native
+compilation step, and automatic multilingual indexing from `<html lang>` across 40+ languages
+with correct per-language stemming. Rebuilding any of it is negative work.
+
+**Contract vs implementation.** The normative contract is runtime-agnostic: a directory of
+built HTML in, the artifacts of `[02-cli-contract.md](02-cli-contract.md)` out. How Pagefind
+is driven is an implementation detail, deliberately excluded from the contract, so that a
+future standalone binary or pip-distributed CLI can satisfy the same contract without a spec
+change. For v1, `@seekjs/cli` is a Node/Bun package and drives Pagefind through its Node API
+(`createIndex`, `addDirectory`, `addHTMLFile`, `writeFiles`), which is why `pagefind` is its
+one dependency. This does not make the contract Node-only, and consuming a Seek index requires
+no JavaScript toolchain at all.
 
 Consequence: no vectors, no embeddings, no `.msp` format, no compiler package, no WASM parser,
 no int8 quantization, no sharding work.

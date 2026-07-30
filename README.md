@@ -25,7 +25,7 @@ grounded AI answers. **There is no SaaS, no hosted service, and no paid tier.**
 ```mermaid
 flowchart TD
     build[Your build] -->|./dist folder of HTML| seek[seek build ./dist]
-    seek -->|Pagefind Node API| bundle[pagefind/ index bundle]
+    seek -->|wraps Pagefind| bundle[pagefind/ index bundle]
     seek -->|no LLM, seconds| context[seek/ context files]
     bundle --> ui[seek-search component]
     context --> endpoint[Answer endpoint<br/>you deploy it, it holds the key]

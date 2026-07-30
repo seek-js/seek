@@ -47,10 +47,21 @@ Origin: https://example.com
 { "question": "how do I rotate an API key?" }
 ```
 
-`question` is the **only** accepted field. Any additional field is ignored, and a request
-carrying anything named `context`, `chunks`, `sources`, `documents`, or `messages` is rejected
-with `400`. This is deliberate: accepting caller-supplied context turns the endpoint into an
-open LLM relay that anyone can point at arbitrary text on the site owner's API key.
+`question` is the only field the endpoint reads. Unrecognised fields are handled by one of two
+rules, in this order:
+
+1. **Reject.** A request carrying any of the reserved names `context`, `chunks`, `sources`,
+   `documents`, or `messages` is rejected with `400`, whatever the value. These names are
+   refused rather than ignored so a caller attempting to smuggle in context gets a hard,
+   diagnosable failure instead of silently receiving an answer built from server-side
+   retrieval.
+2. **Ignore.** Any other unrecognised field is ignored, which keeps older deployments
+   forward-compatible with clients that send fields added in a later revision.
+
+The reserved-name list is a deliberate tripwire, not the security boundary. The boundary is
+that the endpoint **only ever** builds prompts from context it retrieved itself. Accepting
+caller-supplied context would turn it into an open LLM relay that anyone could point at
+arbitrary text on the site owner's API key.
 
 ## Response
 
