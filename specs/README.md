@@ -22,14 +22,37 @@ Put doc in `specs/` when it defines:
 
 Keep exploratory reasoning in `research/`.
 
-## Read Pattern
+## Index
 
-1. subsystem architecture one-pager
-2. schema/reference
-3. boundary contract
-4. strategy/checklist docs
+| File                                                                             | Defines                                                | Status     |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------- |
+| `[01-architecture.md](01-architecture.md)`                                       | v1 pipeline, package layout, architecture decisions    | `Accepted` |
+| `[02-cli-contract.md](02-cli-contract.md)`                                       | `seek build <dir>` flags and emitted artifacts         | `Proposed` |
+| `[03-answer-endpoint.md](03-answer-endpoint.md)`                                 | serverless answer contract, security, caching          | `Proposed` |
+| `[04-component-contract.md](04-component-contract.md)`                           | `<seek-search>` and `useSeek()` API, quality budgets   | `Proposed` |
+| `[05-grounding-and-failure-modes.md](05-grounding-and-failure-modes.md)`         | citation scheme, refusal rule, failure-path matrix     | `Accepted` |
+| `[toolchain-spec.md](toolchain-spec.md)`                                          | workspace, build, quality, validation, release         | see file   |
+| `[turbo-spec.md](turbo-spec.md)`                                                  | task graph, caching, and pipeline contracts            | see file   |
 
-## Current Focus
+## Read Order
 
-- `[extractor/](extractor/README.md)`: core pipeline foundation for fidelity and index quality.
-- `[toolchain-spec.md](toolchain-spec.md)`: canonical toolchain ground-truth spec for workspace, build, quality, validation, and release contracts.
+1. `[01-architecture.md](01-architecture.md)` for the pipeline and the decisions.
+2. `[02-cli-contract.md](02-cli-contract.md)` for what the build emits.
+3. `[03-answer-endpoint.md](03-answer-endpoint.md)` for what consumes it.
+4. `[04-component-contract.md](04-component-contract.md)` for the user-facing surface.
+5. `[05-grounding-and-failure-modes.md](05-grounding-and-failure-modes.md)` last; it overrides
+   the `Proposed` specs where they conflict.
+
+## Superseded
+
+The `specs/extractor/` set (hybrid extraction architecture, `Seek Manifest` schema,
+extractor/compiler contract, probe-and-pivot, source adapters, route discovery, chunking,
+performance budgets) was removed in 2026-07. So was `research/plan.md` and the
+`research/extractor/` set.
+
+- Reasoning, corrected arithmetic, and the full cut list:
+  `[../research/00-scope-change-2026-07.md](../research/00-scope-change-2026-07.md)`.
+- The files themselves: `git log --diff-filter=D --name-only -- specs/extractor research/extractor`.
+
+Do not resurrect a removed spec without adding a decision record that reverses the relevant
+decision in `[01-architecture.md](01-architecture.md)`.
