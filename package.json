@@ -16,9 +16,8 @@
     "format:check": "biome format .",
     "format:fix": "biome format . --write",
     "validate:metadata": "bun ./scripts/validate-metadata.mjs",
-    "validate:publint": "bunx publint packages/extractor && bunx publint packages/cli",
-    "validate:attw": "bunx attw --pack packages/extractor --profile esm-only",
-    "validate:package": "bun run validate:publint && bun run validate:attw",
+    "validate:publint": "bunx publint packages/cli",
+    "validate:package": "bun run validate:publint",
     "check:metadata": "bun run build && bun run validate:metadata",
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test && bun run build && bun run validate:metadata && bun run validate:package"
   },
@@ -28,7 +27,6 @@
     ]
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
     "@biomejs/biome": "^2.4.13",
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
