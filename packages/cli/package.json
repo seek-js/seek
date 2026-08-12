@@ -14,6 +14,6 @@
     "lint": "echo \"skip: Biome at repo root (turbo run lint)\"",
     "format:check": "echo \"skip: Biome at repo root (turbo run format:check)\"",
     "format:fix": "echo \"skip: use root format:fix\"",
-    "test": "bun test"
+    "test": "echo \"skip: no package tests; validator tests run at repo root\""
   }
 }

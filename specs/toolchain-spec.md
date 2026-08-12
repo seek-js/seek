@@ -18,7 +18,7 @@ Define the authoritative toolchain contracts for the Seek.js monorepo so package
 
 ## Out of Scope
 
-- extractor runtime/business logic behavior
+- package runtime/business logic behavior
 - API design and product feature requirements
 - implementation sequencing for rollout
 
@@ -138,7 +138,7 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
 
 - Bun + tsdown workflow remains primary.
 - Validation focuses on manifest correctness and built artifact alignment.
-- Standard package validation is delegated to publint + ATTW.
+- Standard package validation is delegated to publint, plus ATTW once a public library package exists.
 - Full tarball/install matrix validation is deferred to later hardening phases.
 - Publish lifecycle orchestration (`prepublishOnly`, Changesets publish wiring) is deferred to Phase 5.
 
@@ -148,10 +148,10 @@ Make publish-intended packages metadata-correct and artifact-aligned for the cur
   - package role: `library`, `cli`, or `internal`
   - publish intent: `yes` or `no`
 2. Standardize required manifest fields for active publish-intended packages.
-3. Ensure metadata contract fields are present for active publish-intended packages; deep path/entrypoint resolution semantics are enforced via `validate:package` (publint + ATTW).
+3. Ensure metadata contract fields are present for active publish-intended packages; deep path/entrypoint resolution semantics are enforced via `validate:package` (publint, plus ATTW for library packages).
 4. Add a root metadata validator command (`validate:metadata`).
 5. Fail Phase 2 checks on any metadata contract mismatch.
-6. Enforce package validation through `validate:package` (publint + ATTW).
+6. Enforce package validation through `validate:package` (publint, plus ATTW for library packages).
 
 #### Required manifest contract
 
@@ -200,8 +200,8 @@ Output requirements:
 
 - `validate:metadata`: SeekJS smoke-policy checks (active package set and repo-specific policy)
 - `validate:publint`: packaging contract and compatibility checks
-- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`) for importable library packages only (currently `@seekjs/extractor`, not bin-first CLI packages)
-- `validate:package`: aggregate package validation (`publint` + ATTW)
+- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`) for importable library packages only, never for bin-first CLI packages. **Currently not wired.** `@seekjs/extractor` was its only target and was removed with the retired architecture; `@seekjs/core` is still private. The script and its devDependency return with the first publishable library package.
+- `validate:package`: aggregate package validation (`publint` today; `publint` + ATTW once a library is public)
 
 Deep path resolution semantics (runtime/source path shape, boundary guarantees, resolver compatibility) are enforced through `validate:package` tooling, not duplicated in `validate:metadata`.
 
@@ -228,7 +228,9 @@ Optional local combined check:
 - all active publish-intended package manifests satisfy required contract fields
 - `validate:metadata` passes from a clean build
 - `validate:package` passes from a clean build
-- publish-surface path and type-resolution checks pass through publint/ATTW for covered packages
+- publish-surface path checks pass through publint for every active package, and type-resolution
+  checks pass through ATTW for every public library package (no library is public today, so this
+  half of the criterion is currently vacuous rather than skipped)
 - CLI metadata contract passes (`bin` target + shebang)
 
 #### Deferred to later phases

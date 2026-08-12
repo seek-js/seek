@@ -4,13 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 export const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
+// Only publishable packages belong here. `@seekjs/core` is still private, so
+// `@seekjs/cli` is the sole active target until a library is made public --
+// see the `role: 'library'` note in specs/toolchain-spec.md.
 export const ACTIVE_PACKAGES = [
-  {
-    name: '@seekjs/extractor',
-    role: 'library',
-    dir: 'packages/extractor',
-    requiredKeys: ['name', 'version', 'type', 'exports', 'types', 'files'],
-  },
   {
     name: '@seekjs/cli',
     role: 'cli',

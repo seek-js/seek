@@ -42,25 +42,18 @@ flowchart LR
 One repo can host multiple packages with shared tooling and isolated outputs:
 
 - `packages/core`
-- `packages/extractor`
-- `packages/compiler`
-- `packages/client`
 - `packages/cli`
+- `packages/typescript-config`
 
 Each package has its own `package.json`; workspace tooling links local packages during development.
 
 ```mermaid
 flowchart TD
     repoRoot[seek repo root] --> corePkg[packages/core]
-    repoRoot --> extractorPkg[packages/extractor]
-    repoRoot --> compilerPkg[packages/compiler]
-    repoRoot --> clientPkg[packages/client]
     repoRoot --> cliPkg[packages/cli]
-    corePkg --> npmReg[npm registry]
-    extractorPkg --> npmReg
-    compilerPkg --> npmReg
-    clientPkg --> npmReg
-    cliPkg --> npmReg
+    repoRoot --> tsconfigPkg[packages/typescript-config]
+    cliPkg --> npmReg[npm registry]
+    corePkg -.not published yet.-> npmReg
 ```
 
 
@@ -209,7 +202,7 @@ Use `rollup` later only if Seek.js needs advanced custom bundling behavior that 
 
 ## 12) Implementation Checklist (bun + tsdown bootstrap)
 
-1. create workspace packages (`core`, `extractor`, `compiler`, `client`, `cli`)
+1. create workspace packages (`core`, `cli`, `typescript-config`)
 2. configure `tsdown` for library outputs (`esm`, optional `cjs`, `d.ts`)
 3. configure test/quality gates (`bun test`, `biome check`, `tsc --noEmit`)
 4. configure CLI package (`bin`, shebang, command entry)

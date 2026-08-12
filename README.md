@@ -7,7 +7,7 @@ Seek is a thin open-source integration layer, not a search engine. It wraps
 grounded AI answers. **There is no SaaS, no hosted service, and no paid tier.**
 
 > **Pre-alpha. Nothing works yet.**  
-> All five packages are placeholders (`export const phase0XPlaceholder = true`). There is no
+> The surviving packages are placeholders (`export const phase0XPlaceholder = true`). There is no
 > published npm package and no working CLI. Everything below is the **target** API, written
 > down so it can be reviewed before it is built. Do not follow it as installation
 > instructions.
@@ -63,7 +63,9 @@ Search works with no endpoint configured; "Ask AI" is simply hidden.
 
 ## Packages
 
-Planned layout. `packages/` currently holds pre-scope-change placeholders.
+Planned layout. `packages/` currently holds `cli`, `core` and the internal
+`typescript-config`; the pre-scope-change packages have been removed. `element`, `react` and
+`templates` are each created by the ticket that first needs them.
 
 | Package | Role |
 | --- | --- |
@@ -111,7 +113,8 @@ A hard rule, not an aspiration. Adding a row here requires a decision record.
 
 - Stage: scope redefined, contracts under review, zero implementation.
 - Primary focus: freeze the CLI artifact contract, then ship `seek build`.
-- Next: the `packages/` restructure to match the layout above.
+- Next: the pre-scope-change packages are removed; remaining packages in the layout above
+  arrive with the tickets that need them.
 - Not in scope: embeddings, a hosted service, a Python implementation, crawling.
 
 ## Internal Doc Rules
