@@ -193,5 +193,7 @@ inadequate, add this as an opt-in `--expand llm` flag, never a default.
 
 ## Follow-Up Not in This Change
 
-`packages/` still contains `compiler`, `extractor`, and `client`. The restructure to
-`cli` / `core` / `element` / `react` / `templates` is a separate change.
+`packages/` still contained `compiler`, `extractor`, and `client` when this record was
+written. They were removed separately in #10, leaving `cli`, `core` and
+`typescript-config`. Further packages are not scaffolded up front — each is created by the
+ticket that first needs it, per the map in #9.

@@ -18,7 +18,7 @@ Define the authoritative toolchain contracts for the Seek.js monorepo so package
 
 ## Out of Scope
 
-- extractor runtime/business logic behavior
+- package runtime/business logic behavior
 - API design and product feature requirements
 - implementation sequencing for rollout
 
