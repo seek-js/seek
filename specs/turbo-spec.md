@@ -7,8 +7,8 @@
 Turbo orchestrates these root contracts:
 
 - `build` -> `bunx turbo run build`
-- `typecheck` -> `bunx turbo run typecheck`
-- `test` -> `bunx turbo run test`
+- `typecheck` -> `bunx turbo run typecheck` then root-direct `typecheck:scripts`
+- `test` -> `bunx turbo run test` then root-direct `test:scripts`
 - aggregate `check` uses Turbo for `typecheck`, `lint`, `format:check`, `test`, `build`
 
 Current aggregate gate:
@@ -16,8 +16,10 @@ Current aggregate gate:
 - `bun run check`
 - Expands to: `typecheck` -> `turbo lint` -> `turbo format:check` -> `test` -> `build` -> metadata/package validators
 
-Validators currently stay root-direct:
+Validators and root-owned script coverage stay root-direct:
 
+- `typecheck:scripts` -> `tsc -p scripts/tsconfig.json --pretty false`
+- `test:scripts` -> `bun test scripts/tests`
 - `validate:metadata` -> `bun ./scripts/validate-metadata.mjs`
 - `validate:package` -> `publint` today; `publint` + `attw` once a public library package exists. ATTW applies only to library package surfaces, and no library is published while `@seekjs/core` stays private, so `@seekjs/cli` remains covered by metadata + publint.
 - Publish lifecycle hooks (`prepublishOnly`) are intentionally not part of current Turbo quality gate.
@@ -127,7 +129,9 @@ Turbo-specific cross-check:
 
 Current state:
 
-- `validate:metadata` and `validate:package` are root-direct and included in `check`.
+- `validate:metadata`, `validate:package`, `typecheck:scripts` and `test:scripts` are root-direct
+  and included in `check`. `scripts/` is not a workspace, so Turbo cannot own its tasks; running
+  them root-direct is what keeps root-owned tooling covered without tying it to a package.
 
 Near-term decision (current contract):
 
