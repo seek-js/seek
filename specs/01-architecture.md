@@ -153,7 +153,9 @@ above requires a decision record.
 
 ## Package Layout
 
-Planned. Not yet built; `packages/` still holds the pre-scope-change placeholders.
+Planned. Not yet built. The pre-scope-change packages have been removed; `packages/` holds
+`cli`, `core` and the internal `typescript-config`, and the rest arrive with the tickets that
+need them.
 
 | Package | Boundary |
 | --- | --- |
