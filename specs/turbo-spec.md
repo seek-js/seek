@@ -19,7 +19,7 @@ Current aggregate gate:
 Validators currently stay root-direct:
 
 - `validate:metadata` -> `bun ./scripts/validate-metadata.mjs`
-- `validate:package` -> `publint` + `attw` (ATTW currently applied to library package surfaces; CLI remains covered by metadata + publint)
+- `validate:package` -> `publint` today; `publint` + `attw` once a public library package exists. ATTW applies only to library package surfaces, and no library is published while `@seekjs/core` stays private, so `@seekjs/cli` remains covered by metadata + publint.
 - Publish lifecycle hooks (`prepublishOnly`) are intentionally not part of current Turbo quality gate.
 
 ## 2) Why this design

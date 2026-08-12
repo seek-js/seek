@@ -42,25 +42,18 @@ flowchart LR
 One repo can host multiple packages with shared tooling and isolated outputs:
 
 - `packages/core`
-- `packages/extractor`
-- `packages/compiler`
-- `packages/client`
 - `packages/cli`
+- `packages/typescript-config`
 
 Each package has its own `package.json`; workspace tooling links local packages during development.
 
 ```mermaid
 flowchart TD
     repoRoot[seek repo root] --> corePkg[packages/core]
-    repoRoot --> extractorPkg[packages/extractor]
-    repoRoot --> compilerPkg[packages/compiler]
-    repoRoot --> clientPkg[packages/client]
     repoRoot --> cliPkg[packages/cli]
-    corePkg --> npmReg[npm registry]
-    extractorPkg --> npmReg
-    compilerPkg --> npmReg
-    clientPkg --> npmReg
-    cliPkg --> npmReg
+    repoRoot --> tsconfigPkg[packages/typescript-config]
+    cliPkg --> npmReg[npm registry]
+    corePkg -.not published yet.-> npmReg
 ```
 
 

@@ -200,8 +200,8 @@ Output requirements:
 
 - `validate:metadata`: SeekJS smoke-policy checks (active package set and repo-specific policy)
 - `validate:publint`: packaging contract and compatibility checks
-- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`) for importable library packages only (currently `@seekjs/extractor`, not bin-first CLI packages)
-- `validate:package`: aggregate package validation (`publint` + ATTW)
+- `validate:attw`: type/export resolution checks on packed library artifacts (`--pack`) for importable library packages only, never for bin-first CLI packages. **Currently not wired.** `@seekjs/extractor` was its only target and was removed with the retired architecture; `@seekjs/core` is still private. The script and its devDependency return with the first publishable library package.
+- `validate:package`: aggregate package validation (`publint` today; `publint` + ATTW once a library is public)
 
 Deep path resolution semantics (runtime/source path shape, boundary guarantees, resolver compatibility) are enforced through `validate:package` tooling, not duplicated in `validate:metadata`.
 
