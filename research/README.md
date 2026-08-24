@@ -12,7 +12,9 @@ folder; it is what invalidated the extractor research that used to live here.
 
 | Area          | Purpose                                                             | Start here                                                                                     |
 | ------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `pagefind/`   | Pagefind API reality checks against the specs                       | `[pagefind/01-node-api.md](pagefind/01-node-api.md)`                                            |
 | `platform/`   | deployment constraints and CI behavior                              | `[platform/README.md](platform/README.md)`                                                     |
+| `providers/`  | LLM provider compatibility checks behind the answer-endpoint adapter | `[providers/01-openai-compat-tool-calling.md](providers/01-openai-compat-tool-calling.md)`     |
 | `publishing/` | docs publishing operations                                          | `[publishing/README.md](publishing/README.md)`                                                 |
 | root files    | scope decisions and package publishing workflow                     | `[implementation-package-publishing-workflow.md](implementation-package-publishing-workflow.md)` |
 
