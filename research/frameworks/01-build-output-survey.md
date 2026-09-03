@@ -474,9 +474,13 @@ DIY frameworks.
 
 ## 9. Corpus report (what was built)
 
-**Checked in: nothing (deliberate).** No built output, scaffolds, or fixtures committed — the
-corpus lives as repro recipes (per section) plus the build record below, not as files. All
-clones and builds happened outside the repo in `/tmp/seek-corpus-<framework>/`.
+**Checked in: `research/frameworks/corpus/` (~3 MB).** Six miniature slices of the real
+builds above — 5–8 representative pages per framework with relative paths preserved, each
+with a `MANIFEST.md` (source, pinned commit, build command, per-file role). Selected to
+cover the findings that matter downstream: rich docs, thin/shell pages, redirect stubs,
+404s (rendered and shell), locale pages, and non-HTML passthrough. The corpus `README.md`
+lists what #15 should assert per slice. Full builds live nowhere in the repo; slices are
+re-extractable from the pinned commits.
 
 | Framework | Site built (real, open-source) | Commit | Build command | Result |
 | --- | --- | --- | --- | --- |
