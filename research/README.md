@@ -12,6 +12,7 @@ folder; it is what invalidated the extractor research that used to live here.
 
 | Area          | Purpose                                                             | Start here                                                                                     |
 | ------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `frameworks/` | static build output variation across SSGs vs AD-2                   | `[frameworks/01-build-output-survey.md](frameworks/01-build-output-survey.md)`                   |
 | `pagefind/`   | Pagefind API reality checks against the specs                       | `[pagefind/01-node-api.md](pagefind/01-node-api.md)`                                            |
 | `platform/`   | deployment constraints and CI behavior                              | `[platform/README.md](platform/README.md)`                                                     |
 | `providers/`  | LLM provider compatibility checks behind the answer-endpoint adapter | `[providers/01-openai-compat-tool-calling.md](providers/01-openai-compat-tool-calling.md)`     |
